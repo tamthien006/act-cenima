@@ -16,8 +16,8 @@
         android:paddingStart="20dp"
         android:paddingTop="16dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingBottom="140dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -134,268 +134,71 @@
                     android:paddingBottom="10dp" />
             </LinearLayout>
 
-            <!-- Movies carousel -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:overScrollMode="never"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <LinearLayout
-                        android:layout_width="200dp"
-                        android:layout_height="320dp"
-                        android:layout_marginEnd="16dp"
-                        android:background="@drawable/bg_movie_card"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_poster_one"
-                            android:padding="12dp">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="8dp"
-                                    android:background="@drawable/bg_chip_yellow"
-                                    android:text="T16"
-                                    android:textColor="@color/white"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:background="@drawable/bg_chip_orange"
-                                    android:text="HOT"
-                                    android:textColor="@color/white"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-                        </FrameLayout>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="Nhân bản ánh sáng"
-                            android:textColor="@color/neutral_text"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Khoa học viễn tưởng • 120'"
-                            android:textColor="@color/neutral_subtext"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="200dp"
-                        android:layout_height="320dp"
-                        android:layout_marginEnd="16dp"
-                        android:background="@drawable/bg_movie_card"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_poster_two"
-                            android:padding="12dp">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="8dp"
-                                    android:background="@drawable/bg_chip_yellow"
-                                    android:text="T16"
-                                    android:textColor="@color/white"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:background="@drawable/bg_chip_orange"
-                                    android:text="HOT"
-                                    android:textColor="@color/white"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-                        </FrameLayout>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="Thành phố không ngủ"
-                            android:textColor="@color/neutral_text"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Hành động • 110'"
-                            android:textColor="@color/neutral_subtext"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- Bottom navigation icons -->
+            <!-- Movies grid -->
             <LinearLayout
+                android:id="@+id/movieGrid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:background="@color/white"
-                android:elevation="4dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp">
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="4dp">
+                    android:layout_marginBottom="16dp"
+                    android:orientation="horizontal">
 
-                    <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:src="@drawable/ic_calendar"
-                        android:tint="@color/nav_inactive" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <include
+                        layout="@layout/view_movie_card_one"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Lịch chiếu theo phim"
-                        android:textColor="@color/nav_inactive"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:layout_weight="1"
+                        android:layout_marginEnd="12dp" />
+
+                    <include
+                        layout="@layout/view_movie_card_two"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="4dp">
+                    android:layout_marginBottom="16dp"
+                    android:orientation="horizontal">
 
-                    <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:src="@drawable/ic_clock"
-                        android:tint="@color/nav_inactive" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <include
+                        layout="@layout/view_movie_card_three"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Lịch chiếu theo rạp"
-                        android:textColor="@color/nav_inactive"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:layout_weight="1"
+                        android:layout_marginEnd="12dp" />
+
+                    <include
+                        layout="@layout/view_movie_card_four"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/navVoucher"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="4dp">
+                    android:orientation="horizontal">
 
-                    <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:src="@drawable/ic_ticket"
-                        android:tint="@color/nav_active" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <include
+                        layout="@layout/view_movie_card_five"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Voucher"
-                        android:textColor="@color/nav_active"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                        android:layout_weight="1"
+                        android:layout_marginEnd="12dp" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="4dp">
-
-                    <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:src="@drawable/ic_gift"
-                        android:tint="@color/nav_inactive" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <include
+                        layout="@layout/view_movie_card_six"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Ưu đãi"
-                        android:textColor="@color/nav_inactive"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="4dp">
-
-                    <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:src="@drawable/ic_more"
-                        android:tint="@color/nav_inactive" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Khác"
-                        android:textColor="@color/nav_inactive"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:layout_weight="1" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -468,5 +271,149 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="6dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingTop="14dp"
+        android:paddingBottom="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:id="@+id/navHome"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingVertical="4dp">
+
+            <ImageView
+                android:id="@+id/navHomeIcon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_calendar"
+                android:tint="@color/nav_active" />
+
+            <TextView
+                android:id="@+id/navHomeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Lịch chiếu theo phim"
+                android:textColor="@color/nav_active"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navSchedule"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingVertical="4dp">
+
+            <ImageView
+                android:id="@+id/navScheduleIcon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_clock"
+                android:tint="@color/nav_inactive" />
+
+            <TextView
+                android:id="@+id/navScheduleLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Lịch chiếu theo rạp"
+                android:textColor="@color/nav_inactive"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navVoucher"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingVertical="4dp">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_ticket"
+                android:tint="@color/nav_inactive" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Voucher"
+                android:textColor="@color/nav_inactive"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navOffers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingVertical="4dp">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_gift"
+                android:tint="@color/nav_inactive" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Ưu đãi"
+                android:textColor="@color/nav_inactive"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navMore"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingVertical="4dp">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_more"
+                android:tint="@color/nav_inactive" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Khác"
+                android:textColor="@color/nav_inactive"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

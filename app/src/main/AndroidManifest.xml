@@ -29,6 +29,12 @@
         <activity
             android:name=".VoucherActivity"
             android:exported="false" />
+        <activity
+            android:name=".OffersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".OthersActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

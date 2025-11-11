@@ -16,4 +16,7 @@
     <color name="voucher_gray">#F3F4F6</color>
     <color name="nav_active">#2563EB</color>
     <color name="nav_inactive">#6B7280</color>
+    <color name="offer_tag_red">#B91C1C</color>
+    <color name="offer_tag_blue">#2563EB</color>
+    <color name="offer_tag_gold">#D97706</color>
 </resources>
