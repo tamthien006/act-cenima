@@ -14,6 +14,10 @@ const swaggerSpec = require('./config/swagger');
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
+import authRouter from "./routes/auth.route.js";
+app.use("/api/v1/auth", authRouter);
+
+
 // Load environment variables
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
