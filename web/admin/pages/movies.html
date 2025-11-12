@@ -1,0 +1,67 @@
+<div class="card">
+  <div class="actions" style="justify-content:space-between">
+    <h3>Danh sách phim</h3>
+    <div>
+      <input id="searchMovie" placeholder="Tìm tên phim..." style="padding:8px;border-radius:8px;border:1px solid #2a3346;background:#0f1420;color:#e5e7eb">
+      <button class="btn brand" id="btnAddMovie">+ Thêm phim</button>
+    </div>
+  </div>
+  <table class="table" id="movieTbl">
+    <thead><tr><th>Tên phim</th><th>Thời lượng</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { apiGet, apiPost, apiPut, apiDel } from "../shared/api.js";
+
+  async function load(q="") {
+    const qs = q ? `?q=${encodeURIComponent(q)}` : "";
+    const data = await apiGet("/movies" + qs);
+    const tbody = document.querySelector("#movieTbl tbody");
+    tbody.innerHTML = data.map(m => `
+      <tr>
+        <td>${m.title}</td>
+        <td>${m.duration || 0} phút</td>
+        <td>${m.status || ""}</td>
+        <td>
+          <button class="btn" data-edit="${m._id}">Sửa</button>
+          <button class="btn danger" data-del="${m._id}">Xóa</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  document.getElementById("btnAddMovie").addEventListener("click", async () => {
+    const title = prompt("Tên phim:");
+    if (!title) return;
+    const duration = +prompt("Thời lượng (phút):") || 0;
+    const status = prompt("Trạng thái (now_showing/coming_soon):","now_showing");
+    await apiPost("/movies", { title, duration, status });
+    load();
+  });
+
+  document.getElementById("movieTbl").addEventListener("click", async (e) => {
+    const t = e.target;
+    if (t.dataset.edit) {
+      const id = t.dataset.edit;
+      const newTitle = prompt("Tên mới:");
+      if (!newTitle) return;
+      await apiPut(`/movies/${id}`, { title: newTitle });
+      load();
+    }
+    if (t.dataset.del) {
+      const id = t.dataset.del;
+      if (confirm("Xóa phim này?")) {
+        await apiDel(`/movies/${id}`);
+        load();
+      }
+    }
+  });
+
+  document.getElementById("searchMovie").addEventListener("input", (e) => {
+    load(e.target.value.trim());
+  });
+
+  load();
+</script>
