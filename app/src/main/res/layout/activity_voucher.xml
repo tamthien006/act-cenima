@@ -219,7 +219,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:background="@drawable/bg_primary_button"
+                        android:backgroundTint="#78D728"
                         android:paddingStart="24dp"
                         android:paddingTop="12dp"
                         android:paddingEnd="24dp"

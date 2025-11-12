@@ -68,7 +68,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:background="@drawable/bg_primary_button"
+                    android:backgroundTint="#DC2626"
                     android:paddingStart="32dp"
                     android:paddingTop="12dp"
                     android:paddingEnd="32dp"
@@ -83,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="12dp"
-                    android:text="Đăng nhập để tích điểm và nhận ưu đãi"
+                    android:text="Đăng nhập vào tài khoản"
                     android:textColor="@color/neutral_subtext"
                     android:textSize="14sp" />
 
@@ -114,6 +114,7 @@
                             android:src="@drawable/ic_mail" />
 
                         <EditText
+                            android:id="@+id/etLoginEmail"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
@@ -125,6 +126,16 @@
                             android:textColorHint="@color/neutral_subtext"
                             android:textSize="15sp" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvLoginEmailError"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text=""
+                        android:textColor="@color/primary_red"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -154,6 +165,7 @@
                             android:src="@drawable/ic_lock" />
 
                         <EditText
+                            android:id="@+id/etLoginPassword"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
@@ -170,6 +182,16 @@
                             android:layout_height="22dp"
                             android:src="@drawable/ic_eye" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvLoginPasswordError"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text=""
+                        android:textColor="@color/primary_red"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <Button
@@ -177,7 +199,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:background="@drawable/bg_primary_button"
+                    android:backgroundTint="#DC2626"
                     android:paddingStart="32dp"
                     android:paddingTop="12dp"
                     android:paddingEnd="32dp"
@@ -188,94 +210,17 @@
                     android:textSize="16sp" />
 
                 <TextView
+                    android:id="@+id/tvRegisterNow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="16dp"
-                    android:text="Quên mật khẩu?"
+                    android:text="Chưa có tài khoản? Đăng ký ngay"
                     android:textColor="@color/primary_red"
                     android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="24dp"
-                    android:background="@color/neutral_stroke" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="24dp"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Chưa có tài khoản?"
-                        android:textColor="@color/neutral_text"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/tvRegisterNow"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Đăng ký ngay"
-                        android:textColor="@color/primary_red"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:background="@drawable/bg_tab_unselected"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Lợi ích thành viên Đặt vé 24/24:"
-                        android:textColor="@color/neutral_text"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="• Tích điểm với mỗi lần mua vé"
-                        android:textColor="@color/neutral_subtext"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="• Nhận voucher và ưu đãi độc quyền"
-                        android:textColor="@color/neutral_subtext"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="• Ưu tiên đặt vé sớm cho phim hot"
-                        android:textColor="@color/neutral_subtext"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="• Quà tặng sinh nhật đặc biệt"
-                        android:textColor="@color/neutral_subtext"
-                        android:textSize="13sp" />
-                </LinearLayout>
+                    android:clickable="true"
+                    android:focusable="true" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
-

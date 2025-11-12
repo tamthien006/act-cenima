@@ -12,12 +12,20 @@
         android:background="@drawable/bg_poster_two"
         android:padding="12dp">
 
+        <ImageView
+            android:id="@+id/moviePoster2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="Movie poster" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/movieRating2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -28,17 +36,20 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/movieHot2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_chip_orange"
                 android:text="HOT"
                 android:textColor="@color/white"
                 android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="visible" />
         </LinearLayout>
     </FrameLayout>
 
     <TextView
+        android:id="@+id/movieTitle2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
@@ -48,6 +59,7 @@
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/movieInfo2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Hành động • 110'"

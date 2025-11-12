@@ -68,7 +68,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:background="@drawable/bg_primary_button"
+                    android:backgroundTint="#DC2626"
                     android:paddingStart="32dp"
                     android:paddingTop="12dp"
                     android:paddingEnd="32dp"
@@ -96,7 +96,58 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Email hoặc số điện thoại"
+                        android:text="Họ và tên"
+                        android:textColor="@color/neutral_text"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_input_field"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_user_circle" />
+
+                        <EditText
+                            android:id="@+id/etRegisterName"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:hint="Nhập họ và tên"
+                            android:inputType="textPersonName"
+                            android:textColor="@color/neutral_text"
+                            android:textColorHint="@color/neutral_subtext"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvRegisterNameError"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text=""
+                        android:textColor="@color/primary_red"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email"
                         android:textColor="@color/neutral_text"
                         android:textSize="13sp"
                         android:textStyle="bold"
@@ -114,17 +165,79 @@
                             android:src="@drawable/ic_mail" />
 
                         <EditText
+                            android:id="@+id/etRegisterEmail"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
                             android:layout_weight="1"
                             android:background="@android:color/transparent"
-                            android:hint="Nhập email hoặc số điện thoại"
+                            android:hint="Nhập email"
                             android:inputType="textEmailAddress"
                             android:textColor="@color/neutral_text"
                             android:textColorHint="@color/neutral_subtext"
                             android:textSize="15sp" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvRegisterEmailError"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text=""
+                        android:textColor="@color/primary_red"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Số điện thoại"
+                        android:textColor="@color/neutral_text"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_input_field"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_phone" />
+
+                        <EditText
+                            android:id="@+id/etRegisterPhone"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:hint="Nhập số điện thoại"
+                            android:inputType="phone"
+                            android:textColor="@color/neutral_text"
+                            android:textColorHint="@color/neutral_subtext"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvRegisterPhoneError"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text=""
+                        android:textColor="@color/primary_red"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -154,6 +267,7 @@
                             android:src="@drawable/ic_lock" />
 
                         <EditText
+                            android:id="@+id/etRegisterPassword"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
@@ -170,6 +284,16 @@
                             android:layout_height="22dp"
                             android:src="@drawable/ic_eye" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvRegisterPasswordError"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text=""
+                        android:textColor="@color/primary_red"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -199,6 +323,7 @@
                             android:src="@drawable/ic_lock" />
 
                         <EditText
+                            android:id="@+id/etRegisterConfirmPassword"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
@@ -215,6 +340,16 @@
                             android:layout_height="22dp"
                             android:src="@drawable/ic_eye" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvRegisterConfirmPasswordError"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text=""
+                        android:textColor="@color/primary_red"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <Button
@@ -222,7 +357,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:background="@drawable/bg_primary_button"
+                    android:backgroundTint="#DC2626"
                     android:paddingStart="32dp"
                     android:paddingTop="12dp"
                     android:paddingEnd="32dp"
@@ -235,4 +370,3 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
-
