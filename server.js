@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
@@ -10,31 +10,26 @@ import xss from 'xss-clean';
 import hpp from 'hpp';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
-import authRouter from "./routes/auth.route.js";
+import authRouter from './routes/auth.route.js';
 
-// Initialize Express app
-const app = express();
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenv.config();
 
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Initialize Express app
+const app = express();
 
 // Connect to MongoDB
 connectDB();
 
-// Use auth router
-app.use("/api/v1/auth", authRouter);
-
-
-// Load environment variables
+// Environment variables
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -92,7 +87,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Import route handlers
+// Import and use route handlers
 import userRoutes from './routes/userRoutes.js';
 import movieRoutes from './routes/movieRoutes.js';
 
@@ -145,10 +140,8 @@ app.use(errorHandler);
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`
-  Server running in ${NODE_ENV} mode on port ${PORT}
-  `.yellow.bold);
-  console.log(`  API Documentation: http://localhost:${PORT}/api/v1/docs`.cyan);
+  console.log(colors.yellow.bold(`\n  Server running in ${NODE_ENV} mode on port ${PORT}\n`));
+  console.log(colors.cyan(`  API Documentation: http://localhost:${PORT}/api/v1/docs`));
 });
 
 // Handle unhandled promise rejections
