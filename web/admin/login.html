@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+  <div class="login-card">
+    <h2>🎬 ACT Cinema – Admin</h2>
+    <p class="muted">Đăng nhập để vào bảng điều khiển</p>
+    <input id="email" type="email" placeholder="Email" autofocus>
+    <input id="password" type="password" placeholder="Mật khẩu">
+    <button id="btnLogin">Đăng nhập</button>
+    <p id="loginMsg" class="muted"></p>
+  </div>
+
+  <script type="module">
+    import { login } from "../shared/api.js";
+    const btn = document.getElementById("btnLogin");
+    btn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msg = document.getElementById("loginMsg");
+      msg.textContent = "Đang đăng nhập...";
+      try {
+        const data = await login(email, password);
+        msg.textContent = "Thành công!";
+        const params = new URLSearchParams(location.search);
+        const redirect = params.get("redirect") || "admin";
+        window.location.href = redirect === "admin" ? "./index.html" : "../staff/index.html";
+      } catch (e) {
+        msg.textContent = "Đăng nhập thất bại: " + (e.message || e);
+      }
+    });
+  </script>
+</body>
+</html>
