@@ -34,6 +34,9 @@ const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 
+// Trust proxy for rate limiting behind reverse proxy (like Nginx, Heroku, etc.)
+app.set('trust proxy', 1);
+
 // Set security HTTP headers
 app.use(helmet());
 
@@ -115,6 +118,17 @@ app.use('/api/v1/movies', movieRoutes);
 // app.use('/api/v1/combos', comboRoutes);
 // app.use('/api/v1/reviews', reviewRoutes);
 // app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/auth', require('./routes/userRoutes'));
+app.use('/api/v1/movies', require('./routes/movieRoutes'));
+app.use('/api/v1/cinemas', require('./routes/cinemaRoutes'));
+app.use('/api/v1/rooms', require('./routes/roomRoutes'));
+app.use('/api/v1/schedules', require('./routes/scheduleRoutes'));
+app.use('/api/v1/tickets', require('./routes/ticketRoutes'));
+app.use('/api/v1/payments', require('./routes/paymentRoutes'));
+app.use('/api/v1/promotions', require('./routes/promotionRoutes'));
+app.use('/api/v1/combos', require('./routes/comboRoutes'));
+app.use('/api/v1/reviews', require('./routes/reviewRoutes'));
+app.use('/api/v1/dashboard', require('./routes/dashboardRoutes'));
 
 // Health check endpoint
 app.get('/api/v1/health', (req, res) => {
