@@ -7,12 +7,14 @@ getPromotionById,
 createPromotion,
 updatePromotion,
 deletePromotion,
-validatePromotion
+validatePromotion,
+getActivePromotions
 } = require('../controllers/promotionController');
 const router = express.Router();
 router.get('/', getPromotions);
-router.get('/:id', getPromotionById);
+router.get('/active', getActivePromotions);
 router.get('/validate/:code', validatePromotion);
+router.get('/:id', getPromotionById);
 router.use(protect, admin);
 router.post(
 '/',

@@ -280,14 +280,26 @@ public class MovieDetailActivity extends AppCompatActivity {
                         List<Showtime> showtimes = apiResponse.getData();
                         android.util.Log.d("MovieDetailActivity", "Loaded " + showtimes.size() + " showtimes");
                         
-                        // Log first showtime for debugging
-                        if (!showtimes.isEmpty()) {
-                            Showtime first = showtimes.get(0);
-                            android.util.Log.d("MovieDetailActivity", "First showtime - Time: " + first.getStartTime() + 
-                                ", Cinema: " + first.getCinemaName() + 
-                                ", Room: " + first.getRoomName() + 
-                                ", Price: " + first.getPrice());
-                        } else {
+                        // Log all showtimes for debugging
+                        for (int i = 0; i < showtimes.size(); i++) {
+                            Showtime st = showtimes.get(i);
+                            android.util.Log.d("MovieDetailActivity", "Showtime " + (i + 1) + ":");
+                            android.util.Log.d("MovieDetailActivity", "  - _id: " + st.get_id());
+                            android.util.Log.d("MovieDetailActivity", "  - startTime: " + st.getStartTime());
+                            android.util.Log.d("MovieDetailActivity", "  - cinemaName: " + st.getCinemaName());
+                            android.util.Log.d("MovieDetailActivity", "  - roomName: " + st.getRoomName());
+                            android.util.Log.d("MovieDetailActivity", "  - price: " + st.getPrice());
+                            android.util.Log.d("MovieDetailActivity", "  - theater object: " + (st.getTheater() != null ? "exists" : "null"));
+                            android.util.Log.d("MovieDetailActivity", "  - room object: " + (st.getRoom() != null ? "exists" : "null"));
+                            if (st.getTheater() != null) {
+                                android.util.Log.d("MovieDetailActivity", "    theater.name: " + st.getTheater().getName());
+                            }
+                            if (st.getRoom() != null) {
+                                android.util.Log.d("MovieDetailActivity", "    room.name: " + st.getRoom().getName());
+                            }
+                        }
+                        
+                        if (showtimes.isEmpty()) {
                             android.util.Log.w("MovieDetailActivity", "Showtimes list is empty - server has no showtimes for this movie");
                         }
                         

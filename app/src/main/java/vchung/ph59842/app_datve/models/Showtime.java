@@ -9,14 +9,32 @@ public class Showtime {
     @SerializedName("id")
     private String id;
     
+    @SerializedName("movie")
+    private String movie;
+    
     @SerializedName("movieId")
     private String movieId;
+    
+    @SerializedName("theater")
+    private Theater theater;
     
     @SerializedName("cinemaId")
     private String cinemaId;
     
     @SerializedName("cinemaName")
     private String cinemaName;
+    
+    @SerializedName("room")
+    private Room room;
+    
+    // Make theater and room accessible for logging
+    public Theater getTheater() {
+        return theater;
+    }
+    
+    public Room getRoom() {
+        return room;
+    }
     
     @SerializedName("roomId")
     private String roomId;
@@ -64,7 +82,8 @@ public class Showtime {
     }
 
     public String getMovieId() {
-        return movieId;
+        if (movieId != null) return movieId;
+        return movie; // Fallback to movie field
     }
 
     public void setMovieId(String movieId) {
@@ -72,7 +91,9 @@ public class Showtime {
     }
 
     public String getCinemaId() {
-        return cinemaId;
+        if (cinemaId != null) return cinemaId;
+        if (theater != null && theater.get_id() != null) return theater.get_id();
+        return null;
     }
 
     public void setCinemaId(String cinemaId) {
@@ -80,7 +101,9 @@ public class Showtime {
     }
 
     public String getCinemaName() {
-        return cinemaName;
+        if (cinemaName != null && !cinemaName.isEmpty()) return cinemaName;
+        if (theater != null && theater.getName() != null) return theater.getName();
+        return null;
     }
 
     public void setCinemaName(String cinemaName) {
@@ -88,7 +111,9 @@ public class Showtime {
     }
 
     public String getRoomId() {
-        return roomId;
+        if (roomId != null) return roomId;
+        if (room != null && room.get_id() != null) return room.get_id();
+        return null;
     }
 
     public void setRoomId(String roomId) {
@@ -96,11 +121,95 @@ public class Showtime {
     }
 
     public String getRoomName() {
-        return roomName;
+        if (roomName != null && !roomName.isEmpty()) return roomName;
+        if (room != null && room.getName() != null) return room.getName();
+        return null;
     }
 
     public void setRoomName(String roomName) {
         this.roomName = roomName;
+    }
+    
+    // Inner classes for nested objects
+    public static class Theater {
+        @SerializedName("_id")
+        private String _id;
+        
+        @SerializedName("name")
+        private String name;
+        
+        @SerializedName("address")
+        private String address;
+        
+        @SerializedName("city")
+        private String city;
+        
+        public String get_id() {
+            return _id;
+        }
+        
+        public void set_id(String _id) {
+            this._id = _id;
+        }
+        
+        public String getName() {
+            return name;
+        }
+        
+        public void setName(String name) {
+            this.name = name;
+        }
+        
+        public String getAddress() {
+            return address;
+        }
+        
+        public void setAddress(String address) {
+            this.address = address;
+        }
+        
+        public String getCity() {
+            return city;
+        }
+        
+        public void setCity(String city) {
+            this.city = city;
+        }
+    }
+    
+    public static class Room {
+        @SerializedName("_id")
+        private String _id;
+        
+        @SerializedName("name")
+        private String name;
+        
+        @SerializedName("capacity")
+        private int capacity;
+        
+        public String get_id() {
+            return _id;
+        }
+        
+        public void set_id(String _id) {
+            this._id = _id;
+        }
+        
+        public String getName() {
+            return name;
+        }
+        
+        public void setName(String name) {
+            this.name = name;
+        }
+        
+        public int getCapacity() {
+            return capacity;
+        }
+        
+        public void setCapacity(int capacity) {
+            this.capacity = capacity;
+        }
     }
 
     public String getStartTime() {
