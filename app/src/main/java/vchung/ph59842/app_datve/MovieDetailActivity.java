@@ -250,15 +250,20 @@ public class MovieDetailActivity extends AppCompatActivity {
             return;
         }
 
-        android.util.Log.d("MovieDetailActivity", "Loading showtimes for movie ID: " + movieId);
-        android.util.Log.d("MovieDetailActivity", "API endpoint: /api/v1/movies/" + movieId + "/showtimes");
+        final String finalMovieId = movieId; // Make final for inner class
+        android.util.Log.d("MovieDetailActivity", "Loading showtimes for movie ID: " + finalMovieId);
+        android.util.Log.d("MovieDetailActivity", "API endpoint: /api/v1/movies/" + finalMovieId + "/showtimes");
+        android.util.Log.d("MovieDetailActivity", "Full URL: " + vchung.ph59842.app_datve.api.ApiConfig.BASE_URL + "movies/" + finalMovieId + "/showtimes");
 
         ApiService apiService = vchung.ph59842.app_datve.api.ApiClient.getApiService(this);
-        apiService.getMovieShowtimes(movieId).enqueue(new retrofit2.Callback<vchung.ph59842.app_datve.models.ApiResponse<List<Showtime>>>() {
+        apiService.getMovieShowtimes(finalMovieId).enqueue(new retrofit2.Callback<vchung.ph59842.app_datve.models.ApiResponse<List<Showtime>>>() {
             @Override
             public void onResponse(retrofit2.Call<vchung.ph59842.app_datve.models.ApiResponse<List<Showtime>>> call, 
                                  retrofit2.Response<vchung.ph59842.app_datve.models.ApiResponse<List<Showtime>>> response) {
-                android.util.Log.d("MovieDetailActivity", "Showtimes API response code: " + response.code());
+                android.util.Log.d("MovieDetailActivity", "=== Showtimes API Response ===");
+                android.util.Log.d("MovieDetailActivity", "Response code: " + response.code());
+                android.util.Log.d("MovieDetailActivity", "Response isSuccessful: " + response.isSuccessful());
+                android.util.Log.d("MovieDetailActivity", "Response body is null: " + (response.body() == null));
                 
                 if (response.isSuccessful() && response.body() != null) {
                     vchung.ph59842.app_datve.models.ApiResponse<List<Showtime>> apiResponse = response.body();
@@ -266,29 +271,37 @@ public class MovieDetailActivity extends AppCompatActivity {
                     // Log response details
                     android.util.Log.d("MovieDetailActivity", "API response success: " + apiResponse.isSuccess());
                     android.util.Log.d("MovieDetailActivity", "API response message: " + (apiResponse.getMessage() != null ? apiResponse.getMessage() : "null"));
+                    android.util.Log.d("MovieDetailActivity", "API response data is null: " + (apiResponse.getData() == null));
                     
                     // Serialize response back to JSON to see raw data
                     try {
                         Gson gson = new Gson();
                         String responseJson = gson.toJson(apiResponse);
-                        android.util.Log.d("MovieDetailActivity", "API response JSON: " + responseJson);
+                        android.util.Log.d("MovieDetailActivity", "Parsed API response JSON: " + responseJson);
                     } catch (Exception e) {
                         android.util.Log.w("MovieDetailActivity", "Could not serialize response", e);
                     }
                     
-                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                    if (apiResponse.isSuccess()) {
                         List<Showtime> showtimes = apiResponse.getData();
-                        android.util.Log.d("MovieDetailActivity", "Loaded " + showtimes.size() + " showtimes");
+                        if (showtimes == null) {
+                            showtimes = new java.util.ArrayList<>();
+                        }
+                        final List<Showtime> finalShowtimes = showtimes; // Make final for inner class
+                        android.util.Log.d("MovieDetailActivity", "Loaded " + finalShowtimes.size() + " showtimes from API");
                         
                         // Log all showtimes for debugging
-                        for (int i = 0; i < showtimes.size(); i++) {
-                            Showtime st = showtimes.get(i);
+                        for (int i = 0; i < finalShowtimes.size(); i++) {
+                            Showtime st = finalShowtimes.get(i);
                             android.util.Log.d("MovieDetailActivity", "Showtime " + (i + 1) + ":");
                             android.util.Log.d("MovieDetailActivity", "  - _id: " + st.get_id());
                             android.util.Log.d("MovieDetailActivity", "  - startTime: " + st.getStartTime());
                             android.util.Log.d("MovieDetailActivity", "  - cinemaName: " + st.getCinemaName());
                             android.util.Log.d("MovieDetailActivity", "  - roomName: " + st.getRoomName());
                             android.util.Log.d("MovieDetailActivity", "  - price: " + st.getPrice());
+                            android.util.Log.d("MovieDetailActivity", "  - isActive: " + st.isActive());
+                            android.util.Log.d("MovieDetailActivity", "  - isAvailable: " + st.isAvailable());
+                            android.util.Log.d("MovieDetailActivity", "  - availableSeats: " + st.getAvailableSeats());
                             android.util.Log.d("MovieDetailActivity", "  - theater object: " + (st.getTheater() != null ? "exists" : "null"));
                             android.util.Log.d("MovieDetailActivity", "  - room object: " + (st.getRoom() != null ? "exists" : "null"));
                             if (st.getTheater() != null) {
@@ -299,11 +312,12 @@ public class MovieDetailActivity extends AppCompatActivity {
                             }
                         }
                         
-                        if (showtimes.isEmpty()) {
-                            android.util.Log.w("MovieDetailActivity", "Showtimes list is empty - server has no showtimes for this movie");
+                        if (finalShowtimes.isEmpty()) {
+                            android.util.Log.w("MovieDetailActivity", "Showtimes list is empty - server has no showtimes for this movie ID: " + finalMovieId);
+                            android.util.Log.w("MovieDetailActivity", "Please check if showtimes exist in database for this movie");
                         }
                         
-                        displayShowtimes(showtimes);
+                        displayShowtimes(finalShowtimes);
                     } else {
                         android.util.Log.w("MovieDetailActivity", "API response not successful or data is null");
                         android.util.Log.w("MovieDetailActivity", "Response success: " + apiResponse.isSuccess() + 

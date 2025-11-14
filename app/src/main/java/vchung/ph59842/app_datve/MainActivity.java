@@ -3,6 +3,7 @@ package vchung.ph59842.app_datve;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -27,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvUserStatus;
     private View btnHeaderLogin;
     private View authCtaContainer;
+    private TextView tabUpcoming;
+    private TextView tabNow;
+    private TextView tabEarly;
+    private String currentTab = "showing"; // Default to "ĐANG CHIẾU"
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +61,36 @@ public class MainActivity extends AppCompatActivity {
         tvUserStatus = findViewById(R.id.tvUserStatus);
         btnHeaderLogin = findViewById(R.id.btnHeaderLogin);
         authCtaContainer = findViewById(R.id.authCtaContainer);
+        
+        // Add click listener to avatar and user name
+        ImageView avatarView = findViewById(R.id.avatarView);
+        
+        View.OnClickListener openAccount = view -> {
+            if (userSession.isLoggedIn()) {
+                Intent intent = AccountActivity.createIntent(MainActivity.this);
+                startActivity(intent);
+            } else {
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+        };
+        
+        // Set click listener on header area (avatar + name)
+        View headerContainer = findViewById(R.id.headerContainer);
+        if (headerContainer != null) {
+            headerContainer.setOnClickListener(openAccount);
+            headerContainer.setClickable(true);
+        }
+        
+        if (tvUserName != null) {
+            tvUserName.setOnClickListener(openAccount);
+            tvUserName.setClickable(true);
+        }
+        
+        if (avatarView != null) {
+            avatarView.setOnClickListener(openAccount);
+            avatarView.setClickable(true);
+        }
 
         NestedScrollView contentScroll = findViewById(R.id.contentScroll);
         View loginButton = findViewById(R.id.btnOpenLogin);
@@ -136,6 +171,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         updateNavSelection(true, homeIcon, homeLabel, scheduleIcon, scheduleLabel);
+
+        // Initialize tabs
+        tabUpcoming = findViewById(R.id.tabUpcoming);
+        tabNow = findViewById(R.id.tabNow);
+        tabEarly = findViewById(R.id.tabEarly);
+
+        // Set up tab click listeners
+        if (tabUpcoming != null) {
+            tabUpcoming.setOnClickListener(view -> switchTab("upcoming"));
+        }
+        if (tabNow != null) {
+            tabNow.setOnClickListener(view -> switchTab("showing"));
+        }
+        if (tabEarly != null) {
+            tabEarly.setOnClickListener(view -> switchTab("early"));
+        }
+
+        // Update tab UI to show default selected tab
+        updateTabUI();
 
         // Load movies
         loadMovies();
@@ -276,9 +330,80 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void switchTab(String tab) {
+        if (tab.equals(currentTab)) {
+            return; // Already on this tab
+        }
+        
+        currentTab = tab;
+        updateTabUI();
+        loadMovies();
+    }
+
+    private void updateTabUI() {
+        // Reset all tabs to unselected state
+        if (tabUpcoming != null) {
+            tabUpcoming.setBackgroundResource(R.drawable.bg_tab_unselected);
+            tabUpcoming.setTextColor(ContextCompat.getColor(this, R.color.neutral_subtext));
+            android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) tabUpcoming.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            tabUpcoming.setLayoutParams(params);
+        }
+        
+        if (tabNow != null) {
+            tabNow.setBackgroundResource(R.drawable.bg_tab_unselected);
+            tabNow.setTextColor(ContextCompat.getColor(this, R.color.neutral_subtext));
+            android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) tabNow.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            tabNow.setLayoutParams(params);
+        }
+        
+        if (tabEarly != null) {
+            tabEarly.setBackgroundResource(R.drawable.bg_tab_unselected);
+            tabEarly.setTextColor(ContextCompat.getColor(this, R.color.neutral_subtext));
+            android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) tabEarly.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            tabEarly.setLayoutParams(params);
+        }
+        
+        // Set selected tab
+        TextView selectedTab = null;
+        if (currentTab.equals("upcoming") && tabUpcoming != null) {
+            selectedTab = tabUpcoming;
+        } else if (currentTab.equals("showing") && tabNow != null) {
+            selectedTab = tabNow;
+        } else if (currentTab.equals("early") && tabEarly != null) {
+            selectedTab = tabEarly;
+        }
+        
+        if (selectedTab != null) {
+            selectedTab.setBackgroundResource(R.drawable.bg_tab_selected);
+            selectedTab.setTextColor(ContextCompat.getColor(this, R.color.tab_active));
+            android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) selectedTab.getLayoutParams();
+            int margin = (int) (8 * getResources().getDisplayMetrics().density); // 8dp
+            params.setMargins(margin, 0, margin, 0);
+            selectedTab.setLayoutParams(params);
+        }
+    }
+
     private void loadMovies() {
         ApiService apiService = vchung.ph59842.app_datve.api.ApiClient.getApiService(this);
-        apiService.getNowShowingMovies("showing").enqueue(new retrofit2.Callback<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>>() {
+        
+        retrofit2.Call<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>> call;
+        
+        if (currentTab.equals("upcoming")) {
+            // Load upcoming movies
+            call = apiService.getUpcomingMovies();
+        } else if (currentTab.equals("early")) {
+            // Load early showtimes - use showing movies with early showtimes filter
+            // For now, we'll use showing movies and filter client-side
+            call = apiService.getNowShowingMovies("showing");
+        } else {
+            // Default: showing movies
+            call = apiService.getNowShowingMovies("showing");
+        }
+        
+        call.enqueue(new retrofit2.Callback<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>>() {
             @Override
             public void onResponse(retrofit2.Call<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>> call, 
                                  retrofit2.Response<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>> response) {
@@ -495,6 +620,20 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private List<Movie> moviesList;
+    
+    private <T extends View> View findViewByType(ViewGroup parent, Class<T> type) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (type.isInstance(child)) {
+                return child;
+            }
+            if (child instanceof ViewGroup) {
+                View found = findViewByType((ViewGroup) child, type);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
 
     private void updateNavSelection(boolean isHomeSelected,
                                     ImageView homeIcon,

@@ -69,6 +69,15 @@ public class OthersActivity extends AppCompatActivity {
                 // Already on this screen
             });
         }
+
+        // Member tile click listener - navigate to AccountActivity
+        View tileMember = findViewById(R.id.tileMember);
+        if (tileMember != null) {
+            tileMember.setOnClickListener(view -> {
+                Intent intent = AccountActivity.createIntent(OthersActivity.this);
+                startActivity(intent);
+            });
+        }
     }
 }
 

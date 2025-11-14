@@ -15,6 +15,12 @@ public class Showtime {
     @SerializedName("movieId")
     private String movieId;
     
+    @SerializedName("theaterId")
+    private String theaterId;
+    
+    @SerializedName("roomId")
+    private String roomId;
+    
     @SerializedName("theater")
     private Theater theater;
     
@@ -36,9 +42,6 @@ public class Showtime {
         return room;
     }
     
-    @SerializedName("roomId")
-    private String roomId;
-    
     @SerializedName("roomName")
     private String roomName;
     
@@ -55,10 +58,13 @@ public class Showtime {
     private double price;
     
     @SerializedName("availableSeats")
-    private int availableSeats;
+    private Object availableSeats; // Can be array or number
     
     @SerializedName("totalSeats")
     private int totalSeats;
+    
+    @SerializedName("isActive")
+    private boolean isActive;
     
     @SerializedName("isAvailable")
     private boolean isAvailable;
@@ -82,8 +88,9 @@ public class Showtime {
     }
 
     public String getMovieId() {
-        if (movieId != null) return movieId;
-        return movie; // Fallback to movie field
+        if (movieId != null && !movieId.isEmpty()) return movieId;
+        if (movie != null && !movie.isEmpty()) return movie;
+        return null;
     }
 
     public void setMovieId(String movieId) {
@@ -91,7 +98,8 @@ public class Showtime {
     }
 
     public String getCinemaId() {
-        if (cinemaId != null) return cinemaId;
+        if (cinemaId != null && !cinemaId.isEmpty()) return cinemaId;
+        if (theaterId != null && !theaterId.isEmpty()) return theaterId;
         if (theater != null && theater.get_id() != null) return theater.get_id();
         return null;
     }
@@ -111,7 +119,7 @@ public class Showtime {
     }
 
     public String getRoomId() {
-        if (roomId != null) return roomId;
+        if (roomId != null && !roomId.isEmpty()) return roomId;
         if (room != null && room.get_id() != null) return room.get_id();
         return null;
     }
@@ -245,10 +253,19 @@ public class Showtime {
     }
 
     public int getAvailableSeats() {
-        return availableSeats;
+        if (availableSeats == null) {
+            return 0;
+        }
+        if (availableSeats instanceof java.util.List) {
+            return ((java.util.List<?>) availableSeats).size();
+        }
+        if (availableSeats instanceof Number) {
+            return ((Number) availableSeats).intValue();
+        }
+        return 0;
     }
 
-    public void setAvailableSeats(int availableSeats) {
+    public void setAvailableSeats(Object availableSeats) {
         this.availableSeats = availableSeats;
     }
 
@@ -261,11 +278,26 @@ public class Showtime {
     }
 
     public boolean isAvailable() {
-        return isAvailable;
+        // Check isActive first, then isAvailable, then availableSeats
+        if (!isActive) {
+            return false;
+        }
+        if (isAvailable) {
+            return true;
+        }
+        return getAvailableSeats() > 0;
     }
 
     public void setAvailable(boolean available) {
         isAvailable = available;
+    }
+    
+    public boolean isActive() {
+        return isActive;
+    }
+    
+    public void setActive(boolean active) {
+        isActive = active;
     }
     
     // Helper method to format time (e.g., "2024-01-10T09:00:00" -> "09:00")
