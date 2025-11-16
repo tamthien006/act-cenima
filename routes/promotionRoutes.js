@@ -2,17 +2,23 @@ const express = require('express');
 const { check } = require('express-validator');
 const { protect, admin } = require('../middleware/authMiddleware');
 const {
-getPromotions,
-getPromotionById,
-createPromotion,
-updatePromotion,
-deletePromotion,
-validatePromotion
+  getPromotions,
+  getPromotionById,
+  createPromotion,
+  updatePromotion,
+  deletePromotion,
+  validatePromotion,
+  getActivePromotions
 } = require('../controllers/promotionController');
 const router = express.Router();
+
+// Public routes
+router.get('/active', getActivePromotions);
+router.get('/validate/:code', validatePromotion);
+
+// Protected routes
 router.get('/', getPromotions);
 router.get('/:id', getPromotionById);
-router.get('/validate/:code', validatePromotion);
 router.use(protect, admin);
 router.post(
 '/',

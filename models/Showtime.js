@@ -37,6 +37,11 @@ const showtimeSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  address: {
+    type: String,
+    required: true,
+    trim: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -94,6 +99,6 @@ showtimeSchema.statics.findAvailable = function(movieId, date) {
   .sort('startTime');
 };
 
-const Showtime = mongoose.model('Showtime', showtimeSchema);
+const Showtime = mongoose.model('Showtimes', showtimeSchema);
 
 module.exports = Showtime;
