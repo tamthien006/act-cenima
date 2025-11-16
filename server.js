@@ -125,6 +125,7 @@ app.use('/api/v1/rooms', require('./routes/roomRoutes'));
 app.use('/api/v1/schedules', require('./routes/scheduleRoutes'));
 app.use('/api/v1/tickets', require('./routes/ticketRoutes'));
 app.use('/api/v1/payments', require('./routes/paymentRoutes'));
+app.use('/api/v1/vouchers', require('./routes/voucherRoutes'));
 app.use('/api/v1/promotions', require('./routes/promotionRoutes'));
 app.use('/api/v1/combos', require('./routes/comboRoutes'));
 app.use('/api/v1/reviews', require('./routes/reviewRoutes'));

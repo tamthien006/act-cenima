@@ -1,5 +1,29 @@
 const Promotion = require('../models/Promotion');
 const { validationResult } = require('express-validator');
+
+// @desc    Get active promotions
+// @route   GET /api/v1/promotions/active
+// @access  Public
+exports.getActivePromotions = async (req, res, next) => {
+  try {
+    const currentDate = new Date();
+    
+    const promotions = await Promotion.find({
+      isActive: true,
+      startDate: { $lte: currentDate },
+      endDate: { $gte: currentDate }
+    }).sort({ startDate: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: promotions.length,
+      data: promotions
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getPromotions = async (req, res, next) => {
 try {
 const { status, type, page = 1, limit = 10 } = req.query;
