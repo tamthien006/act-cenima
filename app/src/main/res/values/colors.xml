@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="primary_red">#DC2626</color>
+    <color name="primary_red_dark">#B91C1C</color>
+    <color name="neutral_text">#1F2937</color>
+    <color name="neutral_subtext">#6B7280</color>
+    <color name="neutral_background">#F4F5F7</color>
+    <color name="neutral_stroke">#E5E7EB</color>
+    <color name="tab_active">#2563EB</color>
+    <color name="tag_orange">#F97316</color>
+    <color name="tag_yellow">#F59E0B</color>
+    <color name="voucher_red">#EF4444</color>
+    <color name="voucher_gray">#F3F4F6</color>
+    <color name="nav_active">#2563EB</color>
+    <color name="nav_inactive">#6B7280</color>
+    <color name="offer_tag_red">#B91C1C</color>
+    <color name="offer_tag_blue">#2563EB</color>
+    <color name="offer_tag_gold">#D97706</color>
+</resources>

@@ -1,0 +1,16 @@
+<div class="card">
+  <h3>Danh sách tài khoản / nhân viên</h3>
+  <table class="table" id="userTbl">
+    <thead><tr><th>Tên</th><th>Email</th><th>Vai trò</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { apiGet } from "../shared/api.js";
+  (async () => {
+    const users = await apiGet("/users");
+    const tb = document.querySelector("#userTbl tbody");
+    tb.innerHTML = users.map(u => `<tr><td>${u.name||""}</td><td>${u.email}</td><td>${u.role||""}</td></tr>`).join("");
+  })();
+</script>

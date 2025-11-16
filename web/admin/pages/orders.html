@@ -1,0 +1,18 @@
+<div class="card">
+  <h3>Đơn đặt vé</h3>
+  <table class="table" id="orderTbl">
+    <thead><tr><th>Mã đơn</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thời gian</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { apiGet } from "../shared/api.js";
+  (async () => {
+    const orders = await apiGet("/orders");
+    const tb = document.querySelector("#orderTbl tbody");
+    tb.innerHTML = orders.map(o => `<tr>
+      <td>${o._id}</td><td>${(o.total||0).toLocaleString("vi-VN")}₫</td><td>${o.status||""}</td><td>${new Date(o.createdAt).toLocaleString()}</td>
+    </tr>`).join("");
+  })();
+</script>
