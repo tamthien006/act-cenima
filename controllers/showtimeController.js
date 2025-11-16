@@ -1,8 +1,11 @@
+   const mongoose = require('mongoose');
 const Showtime = require('../models/Showtime');
 const Movie = require('../models/Movie');
 const Theater = require('../models/Theater');
+const Room = require('../models/Room');
 const Booking = require('../models/Booking');
 const { validationResult } = require('express-validator');
+
 
 // @desc    Get showtimes for a specific movie
 // @route   GET /api/movies/:id/showtimes
@@ -12,6 +15,9 @@ exports.getMovieShowtimes = async (req, res, next) => {
     const { date, city } = req.query;
     const { id } = req.params;
 
+    console.log('=== getMovieShowtimes ===');
+    console.log('Movie ID from params:', id);
+
     // Validate date format if provided
     if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return res.status(400).json({
@@ -20,8 +26,26 @@ exports.getMovieShowtimes = async (req, res, next) => {
       });
     }
 
-    // Build query
-    const query = { movie: id };
+    // Convert string ID to ObjectId for proper MongoDB query
+    let movieObjectId;
+    try {
+      movieObjectId = new mongoose.Types.ObjectId(id);
+    } catch (err) {
+      console.log('Invalid ObjectId format:', id, err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid movie ID format'
+      });
+    }
+
+    // Build query - try both 'movie' and 'movieId' fields
+    // Some databases use 'movieId' instead of 'movie'
+    const query = { 
+      $or: [
+        { movie: movieObjectId },
+        { movieId: movieObjectId }
+      ]
+    };
     
     // Filter by date if provided
     if (date) {
@@ -35,6 +59,12 @@ exports.getMovieShowtimes = async (req, res, next) => {
       };
     }
 
+    console.log('Query object:', {
+      movie: movieObjectId,
+      movieString: movieObjectId.toString(),
+      startTime: query.startTime
+    });
+
     // Get showtimes with theater and room details
     const showtimes = await Showtime.find(query)
       .populate({
@@ -47,11 +77,74 @@ exports.getMovieShowtimes = async (req, res, next) => {
       })
       .sort({ startTime: 1 });
 
+    console.log('Found showtimes:', showtimes.length);
+
+    // If no results, check if there are any showtimes at all (without any filters)
+    if (showtimes.length === 0) {
+      const allShowtimes = await Showtime.find({ 
+        $or: [
+          { movie: movieObjectId },
+          { movieId: movieObjectId }
+        ]
+      })
+        .populate({
+          path: 'theater',
+          select: 'name address city'
+        })
+        .populate({
+          path: 'room',
+          select: 'name capacity'
+        })
+        .sort({ startTime: 1 });
+      
+      console.log('Total showtimes for this movie (no filters):', allShowtimes.length);
+      
+      if (allShowtimes.length > 0) {
+        console.log('Sample showtime:', {
+          _id: allShowtimes[0]._id,
+          movie: allShowtimes[0].movie ? allShowtimes[0].movie.toString() : 'null',
+          movieId: allShowtimes[0].movieId ? allShowtimes[0].movieId.toString() : 'null',
+          startTime: allShowtimes[0].startTime,
+          isActive: allShowtimes[0].isActive
+        });
+      } else {
+        console.log('No showtimes found in database for this movie ID at all!');
+        
+        // Check if there are ANY showtimes in the database
+        const totalShowtimes = await Showtime.countDocuments({});
+        console.log('Total showtimes in database (all movies):', totalShowtimes);
+        
+        // Check if movie exists
+        const movieExists = await Movie.findById(movieObjectId);
+        console.log('Movie exists:', movieExists ? 'YES - ' + movieExists.title : 'NO');
+        
+        // Try to find showtimes with string ID (in case database uses string)
+        const showtimesWithString = await Showtime.find({ movie: id }).limit(5);
+        console.log('Showtimes found with string ID:', showtimesWithString.length);
+        
+        // Get a sample showtime to see its structure
+        const sampleShowtime = await Showtime.findOne({});
+        if (sampleShowtime) {
+          console.log('Sample showtime structure:', {
+            _id: sampleShowtime._id,
+            movie: sampleShowtime.movie,
+            movieId: sampleShowtime.movieId,
+            allFields: Object.keys(sampleShowtime.toObject()),
+            fullObject: sampleShowtime.toObject()
+          });
+          
+          // Try query with movieId field
+          const showtimesWithMovieId = await Showtime.find({ movieId: movieObjectId }).limit(5);
+          console.log('Showtimes found with movieId field:', showtimesWithMovieId.length);
+        }
+      }
+    }
+
     // Filter by city if provided
     let filteredShowtimes = showtimes;
     if (city) {
       filteredShowtimes = showtimes.filter(st => 
-        st.theater.city.toLowerCase() === city.toLowerCase()
+        st.theater && st.theater.city && st.theater.city.toLowerCase() === city.toLowerCase()
       );
     }
 
@@ -61,6 +154,7 @@ exports.getMovieShowtimes = async (req, res, next) => {
       data: filteredShowtimes
     });
   } catch (err) {
+    console.error('Error in getMovieShowtimes:', err);
     next(err);
   }
 };
@@ -192,8 +286,208 @@ exports.getNowShowingMovies = async (req, res, next) => {
   }
 };
 
+// @desc    Get showtime details
+// @route   GET /api/v1/showtimes/:id
+// @access  Public
+exports.getShowtimeDetails = async (req, res, next) => {
+  try {
+    const showtime = await Showtime.findById(req.params.id)
+      .populate('movie', 'title posterUrl duration ageRating')
+      .populate('theater', 'name address city')
+      .populate('room', 'name capacity');
+
+    if (!showtime) {
+      return res.status(404).json({
+        success: false,
+        message: 'Showtime not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: showtime
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Create a new showtime
+// @route   POST /api/v1/showtimes
+// @access  Private/Admin
+exports.createShowtime = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const { movie, theater, room, startTime, price, address } = req.body;
+
+    // Check if movie exists
+    const movieExists = await Movie.findById(movie);
+    if (!movieExists) {
+      return res.status(404).json({
+        success: false,
+        message: 'Movie not found'
+      });
+    }
+
+    // Check if theater exists
+    const theaterExists = await Theater.findById(theater);
+    if (!theaterExists) {
+      return res.status(404).json({
+        success: false,
+        message: 'Theater not found'
+      });
+    }
+
+    // Check if room exists and belongs to the theater
+    const roomExists = await Room.findOne({ _id: room, theater: theater });
+    if (!roomExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'Room not found in the specified theater'
+      });
+    }
+
+    // Check for time conflicts
+    const endTime = new Date(new Date(startTime).getTime() + movieExists.duration * 60000);
+    
+    const conflict = await Showtime.findOne({
+      room: room,
+      $or: [
+        {
+          startTime: { $lt: endTime },
+          endTime: { $gt: startTime }
+        }
+      ]
+    });
+
+    if (conflict) {
+      return res.status(400).json({
+        success: false,
+        message: 'Time conflict with another showtime in the same room'
+      });
+    }
+
+    // Create showtime
+    const showtime = await Showtime.create({
+      movie,
+      theater,
+      room,
+      startTime,
+      endTime,
+      price,
+      address,
+      availableSeats: Array(roomExists.capacity).fill().map((_, i) => (i + 1).toString())
+    });
+
+    res.status(201).json({
+      success: true,
+      data: showtime
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Update a showtime
+// @route   PUT /api/v1/showtimes/:id
+// @access  Private/Admin
+exports.updateShowtime = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const { startTime, price, isActive, address } = req.body;
+    const showtime = await Showtime.findById(req.params.id);
+
+    if (!showtime) {
+      return res.status(404).json({
+        success: false,
+        message: 'Showtime not found'
+      });
+    }
+
+    // Check if there are any bookings if trying to deactivate
+    if (isActive === false && showtime.isActive) {
+      const hasBookings = await Booking.exists({ showtime: showtime._id });
+      if (hasBookings) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot deactivate showtime with existing bookings'
+        });
+      }
+    }
+
+    // Update fields
+    if (startTime) {
+      // If startTime is being updated, we need to update endTime as well
+      const movie = await Movie.findById(showtime.movie);
+      showtime.startTime = startTime;
+      showtime.endTime = new Date(new Date(startTime).getTime() + movie.duration * 60000);
+    }
+    
+    if (price !== undefined) showtime.price = price;
+    if (isActive !== undefined) showtime.isActive = isActive;
+    if (address !== undefined) showtime.address = address;
+
+    await showtime.save();
+
+    res.status(200).json({
+      success: true,
+      data: showtime
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Delete a showtime
+// @route   DELETE /api/v1/showtimes/:id
+// @access  Private/Admin
+exports.deleteShowtime = async (req, res, next) => {
+  try {
+    const showtime = await Showtime.findById(req.params.id);
+
+    if (!showtime) {
+      return res.status(404).json({
+        success: false,
+        message: 'Showtime not found'
+      });
+    }
+
+    // Check if there are any bookings
+    const hasBookings = await Booking.exists({ showtime: showtime._id });
+    if (hasBookings) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete showtime with existing bookings. Deactivate it instead.'
+      });
+    }
+
+    await showtime.remove();
+
+    res.status(200).json({
+      success: true,
+      data: {}
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // @desc    Check movie availability
-// @route   GET /api/movies/:id/availability
+// @route   GET /api/v1/movies/:id/availability
 // @access  Public
 exports.getMovieAvailability = async (req, res, next) => {
   try {

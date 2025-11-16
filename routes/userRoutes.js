@@ -1,7 +1,7 @@
-const express = require('express');
-const { check } = require('express-validator');
-const { protect, admin } = require('../middleware/authMiddleware');
-const {
+import express from 'express';
+import { check } from 'express-validator';
+import { protect, admin } from '../middleware/authMiddleware.js';
+import {
   register,
   login,
   getProfile,
@@ -12,7 +12,7 @@ const {
   updateUser,
   deleteUser,
   createStaff
-} = require('../controllers/userController');
+} from '../controllers/userController.js';
 
 const router = express.Router();
 
@@ -278,4 +278,4 @@ router.post(
   createStaff
 );
 
-module.exports = router;
+export default router;

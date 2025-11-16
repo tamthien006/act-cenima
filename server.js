@@ -1,32 +1,38 @@
-require('dotenv').config();
-const express = require('express');
-const morgan = require('morgan');
-const cors = require('cors');
-const colors = require('colors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
-const hpp = require('hpp');
-const path = require('path');
-const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./config/swagger');
-const connectDB = require('./config/db');
-const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+import dotenv from 'dotenv';
+import express from 'express';
+import morgan from 'morgan';
+import cors from 'cors';
+import colors from 'colors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
+import hpp from 'hpp';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
+import connectDB from './config/db.js';
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import authRouter from './routes/auth.route.js';
 
-import authRouter from "./routes/auth.route.js";
-app.use("/api/v1/auth", authRouter);
-
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
-const PORT = process.env.PORT || 5000;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+dotenv.config();
+
+// Initialize Express app
+const app = express();
 
 // Connect to MongoDB
 connectDB();
 
-// Initialize Express app
-const app = express();
+// Environment variables
+const PORT = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
 
 // Trust proxy for rate limiting behind reverse proxy (like Nginx, Heroku, etc.)
 app.set('trust proxy', 1);
@@ -84,7 +90,34 @@ app.use((req, res, next) => {
   next();
 });
 
+// Import and use route handlers
+import userRoutes from './routes/userRoutes.js';
+import movieRoutes from './routes/movieRoutes.js';
+
 // API Routes
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/movies', movieRoutes);
+
+// Other routes will be added as they are implemented
+// import cinemaRoutes from './routes/cinemaRoutes.js';
+// import roomRoutes from './routes/roomRoutes.js';
+// import scheduleRoutes from './routes/scheduleRoutes.js';
+// import ticketRoutes from './routes/ticketRoutes.js';
+// import paymentRoutes from './routes/paymentRoutes.js';
+// import promotionRoutes from './routes/promotionRoutes.js';
+// import comboRoutes from './routes/comboRoutes.js';
+// import reviewRoutes from './routes/reviewRoutes.js';
+// import dashboardRoutes from './routes/dashboardRoutes.js';
+
+// app.use('/api/v1/cinemas', cinemaRoutes);
+// app.use('/api/v1/rooms', roomRoutes);
+// app.use('/api/v1/schedules', scheduleRoutes);
+// app.use('/api/v1/tickets', ticketRoutes);
+// app.use('/api/v1/payments', paymentRoutes);
+// app.use('/api/v1/promotions', promotionRoutes);
+// app.use('/api/v1/combos', comboRoutes);
+// app.use('/api/v1/reviews', reviewRoutes);
+// app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/auth', require('./routes/userRoutes'));
 app.use('/api/v1/movies', require('./routes/movieRoutes'));
 app.use('/api/v1/cinemas', require('./routes/cinemaRoutes'));
@@ -92,6 +125,7 @@ app.use('/api/v1/rooms', require('./routes/roomRoutes'));
 app.use('/api/v1/schedules', require('./routes/scheduleRoutes'));
 app.use('/api/v1/tickets', require('./routes/ticketRoutes'));
 app.use('/api/v1/payments', require('./routes/paymentRoutes'));
+app.use('/api/v1/vouchers', require('./routes/voucherRoutes'));
 app.use('/api/v1/promotions', require('./routes/promotionRoutes'));
 app.use('/api/v1/combos', require('./routes/comboRoutes'));
 app.use('/api/v1/reviews', require('./routes/reviewRoutes'));
@@ -121,10 +155,8 @@ app.use(errorHandler);
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`
-  Server running in ${NODE_ENV} mode on port ${PORT}
-  `.yellow.bold);
-  console.log(`  API Documentation: http://localhost:${PORT}/api/v1/docs`.cyan);
+  console.log(colors.yellow.bold(`\n  Server running in ${NODE_ENV} mode on port ${PORT}\n`));
+  console.log(colors.cyan(`  API Documentation: http://localhost:${PORT}/api/v1/docs`));
 });
 
 // Handle unhandled promise rejections

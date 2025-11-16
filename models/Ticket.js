@@ -498,4 +498,4 @@ ticketSchema.index(
   }
 );
 
-module.exports = mongoose.model('Ticket', ticketSchema);
+module.exports = mongoose.model('Tickets', ticketSchema);
