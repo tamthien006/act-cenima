@@ -63,8 +63,11 @@ public class Showtime {
     @SerializedName("totalSeats")
     private int totalSeats;
     
-    @SerializedName("isActive")
-    private boolean isActive;
+    @SerializedName("address")
+    private String address;
+    
+    @SerializedName(value = "isActive", alternate = { "isactive" })
+    private Boolean isActive;
     
     @SerializedName("isAvailable")
     private boolean isAvailable;
@@ -276,15 +279,60 @@ public class Showtime {
     public void setTotalSeats(int totalSeats) {
         this.totalSeats = totalSeats;
     }
+    
+    public String getAddress() {
+        if (address != null && !address.isEmpty()) return address;
+        if (theater != null && theater.getAddress() != null && !theater.getAddress().isEmpty()) {
+            return theater.getAddress();
+        }
+        return null;
+    }
+    
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    
+    // Returns true if the showtime is active (or not specified as inactive)
+    // and the start time is in the future. This prevents false "Hết vé" when
+    // the backend doesn't provide seat availability yet.
+    public boolean isBookableNow() {
+        if (isActive != null && !isActive) return false;
+        long start = parseStartTimeToMillis();
+        if (start <= 0) {
+            // If cannot parse start time, fallback to isActive flag
+            return isActive == null || isActive;
+        }
+        return start > System.currentTimeMillis();
+    }
+    
+    private long parseStartTimeToMillis() {
+        if (startTime == null || startTime.isEmpty()) return -1;
+        // Try multiple ISO patterns commonly returned by Node.js/Mongo
+        String[] patterns = new String[] {
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss"
+        };
+        for (String p : patterns) {
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat(p, java.util.Locale.getDefault());
+                // Assume backend time in UTC when 'Z' present
+                if (p.endsWith("'Z'")) {
+                    sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                }
+                return sdf.parse(startTime).getTime();
+            } catch (Exception ignored) {}
+        }
+        return -1;
+    }
 
     public boolean isAvailable() {
-        // Check isActive first, then isAvailable, then availableSeats
-        if (!isActive) {
-            return false;
-        }
-        if (isAvailable) {
-            return true;
-        }
+        // If isActive is explicitly false -> not available
+        if (isActive != null && !isActive) return false;
+        // If backend provides isAvailable true -> available
+        if (isAvailable) return true;
+        // Fallback: if seats count > 0 -> available
         return getAvailableSeats() > 0;
     }
 
@@ -293,7 +341,8 @@ public class Showtime {
     }
     
     public boolean isActive() {
-        return isActive;
+        // Default to true when null to avoid false negatives from missing field
+        return isActive == null ? true : isActive;
     }
     
     public void setActive(boolean active) {

@@ -382,15 +382,29 @@ public class MovieDetailActivity extends AppCompatActivity {
                 timeView.setText("N/A");
             }
 
-            // Set cinema name (with room name if available)
+            // Set cinema name/address (with room name if available)
             String cinemaName = showtime.getCinemaName();
             String roomName = showtime.getRoomName();
+            String address = showtime.getAddress();
             if (cinemaName != null && !cinemaName.isEmpty()) {
                 if (roomName != null && !roomName.isEmpty()) {
                     cinemaView.setText(cinemaName + " - " + roomName);
                 } else {
                     cinemaView.setText(cinemaName);
                 }
+            } else if (address != null && !address.isEmpty()) {
+                if (roomName != null && !roomName.isEmpty()) {
+                    cinemaView.setText(address + " - " + roomName);
+                } else {
+                    cinemaView.setText(address);
+                }
+            } else if (showtime.getTheater() != null) {
+                // Final fallback: try theater object fields
+                String fallback = showtime.getTheater().getName();
+                if (fallback == null || fallback.isEmpty()) {
+                    fallback = showtime.getTheater().getAddress();
+                }
+                cinemaView.setText(fallback != null && !fallback.isEmpty() ? fallback : "N/A");
             } else {
                 cinemaView.setText("N/A");
             }
@@ -399,15 +413,17 @@ public class MovieDetailActivity extends AppCompatActivity {
             priceView.setText(showtime.getFormattedPrice());
 
             // Set button state based on availability
-            if (showtime.isAvailable() && showtime.getAvailableSeats() > 0) {
+            if (showtime.isBookableNow() || showtime.isAvailable() || showtime.getAvailableSeats() > 0) {
                 bookButton.setText("Đặt vé");
                 bookButton.setBackgroundResource(R.drawable.bg_primary_button);
                 bookButton.setEnabled(true);
+                bookButton.setAlpha(1f);
                 bookButton.setOnClickListener(view -> {
-                    // TODO: Navigate to booking screen
-                    android.widget.Toast.makeText(MovieDetailActivity.this, 
-                        "Đặt vé cho suất " + formattedTime, 
-                        android.widget.Toast.LENGTH_SHORT).show();
+                    // Navigate to booking screen with movie + showtime
+                    android.content.Intent intent = BookingActivity.createIntent(
+                        MovieDetailActivity.this, movie, showtime
+                    );
+                    startActivity(intent);
                 });
             } else {
                 bookButton.setText("Hết vé");
