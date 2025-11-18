@@ -100,40 +100,74 @@
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_marginTop="16dp"
-				android:orientation="vertical"
-				android:padding="12dp"
+				android:orientation="horizontal"
+				android:gravity="center_vertical"
+				android:padding="16dp"
 				android:background="@drawable/bg_card">
 
-				<TextView
-					android:layout_width="wrap_content"
+				<LinearLayout
+					android:layout_width="0dp"
 					android:layout_height="wrap_content"
-					android:text="Số lượng vé"/>
+					android:layout_weight="1"
+					android:orientation="vertical">
+
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="Số lượng vé"
+						android:textStyle="bold"
+						android:textSize="16sp"
+						android:textColor="@color/neutral_text"/>
+
+					<TextView
+						android:id="@+id/pricePerTicket"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_marginTop="4dp"
+						android:text="95.000đ/vé"
+						android:textSize="14sp"
+						android:textColor="@color/neutral_subtext"/>
+				</LinearLayout>
 
 				<LinearLayout
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
-					android:layout_marginTop="8dp"
 					android:gravity="center_vertical"
 					android:orientation="horizontal">
 
 					<Button
 						android:id="@+id/btnMinus"
-						android:layout_width="40dp"
-						android:layout_height="40dp"
-						android:text="−"/>
+						android:layout_width="32dp"
+						android:layout_height="32dp"
+						android:backgroundTint="#FFFFFF"
+						android:text="−"
+						android:textColor="@color/neutral_text"
+						android:textSize="18sp"
+						android:padding="0dp"
+						android:minWidth="0dp"
+						android:minHeight="0dp"/>
 
 					<TextView
 						android:id="@+id/qtyText"
 						android:layout_width="40dp"
 						android:layout_height="wrap_content"
 						android:gravity="center"
-						android:text="1"/>
+						android:text="1"
+						android:textSize="16sp"
+						android:textColor="@color/neutral_text"
+						android:layout_marginHorizontal="12dp"/>
 
 					<Button
 						android:id="@+id/btnPlus"
-						android:layout_width="40dp"
-						android:layout_height="40dp"
-						android:text="+"/>
+						android:layout_width="32dp"
+						android:layout_height="32dp"
+						android:backgroundTint="#FFFFFF"
+						android:text="+"
+						android:textColor="@color/neutral_text"
+						android:textSize="18sp"
+						android:padding="0dp"
+						android:minWidth="0dp"
+						android:minHeight="0dp"/>
 				</LinearLayout>
 			</LinearLayout>
 
@@ -166,26 +200,147 @@
 					android:layout_marginTop="8dp"/>
 			</LinearLayout>
 
-			<!-- Voucher + total -->
+			<!-- Voucher -->
 			<LinearLayout
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_marginTop="16dp"
 				android:orientation="vertical"
-				android:padding="12dp"
+				android:padding="16dp"
+				android:background="@drawable/bg_card">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal"
+					android:gravity="center_vertical">
+
+					<TextView
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:text="Voucher giảm giá"
+						android:textStyle="bold"
+						android:textSize="16sp"
+						android:textColor="@color/neutral_text"/>
+
+					<Button
+						android:id="@+id/btnSelectVoucher"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="Chọn"
+						android:textColor="@color/secondaryColor"
+						android:background="@android:color/transparent"
+						android:minWidth="0dp"
+						android:minHeight="0dp"
+						android:padding="8dp"/>
+				</LinearLayout>
+
+				<TextView
+					android:id="@+id/selectedVoucherText"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="8dp"
+					android:text="Chưa chọn voucher"
+					android:textSize="14sp"
+					android:textColor="@color/neutral_subtext"
+					android:visibility="gone"/>
+
+				<TextView
+					android:id="@+id/voucherDiscountText"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="4dp"
+					android:text=""
+					android:textSize="14sp"
+					android:textColor="@color/voucher_red"
+					android:visibility="gone"/>
+			</LinearLayout>
+
+			<!-- Combo bắp nước -->
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp"
+				android:orientation="vertical"
+				android:padding="16dp"
+				android:background="@drawable/bg_card">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal"
+					android:gravity="center_vertical">
+
+					<TextView
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:text="Combo bắp nước"
+						android:textStyle="bold"
+						android:textSize="16sp"
+						android:textColor="@color/neutral_text"/>
+
+					<Button
+						android:id="@+id/btnSelectCombo"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="Chọn"
+						android:textColor="@color/secondaryColor"
+						android:background="@android:color/transparent"
+						android:minWidth="0dp"
+						android:minHeight="0dp"
+						android:padding="8dp"/>
+				</LinearLayout>
+
+				<TextView
+					android:id="@+id/selectedComboText"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="8dp"
+					android:text="Chưa chọn combo"
+					android:textSize="14sp"
+					android:textColor="@color/neutral_subtext"
+					android:visibility="gone"/>
+
+				<TextView
+					android:id="@+id/comboPriceText"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="4dp"
+					android:text=""
+					android:textSize="14sp"
+					android:textColor="@color/primary_red"
+					android:visibility="gone"/>
+			</LinearLayout>
+
+			<!-- Total Price -->
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp"
+				android:orientation="horizontal"
+				android:gravity="center_vertical"
+				android:padding="16dp"
 				android:background="@drawable/bg_card">
 
 				<TextView
-					android:layout_width="wrap_content"
+					android:layout_width="0dp"
 					android:layout_height="wrap_content"
-					android:text="Voucher giảm giá"/>
+					android:layout_weight="1"
+					android:text="Tổng tiền"
+					android:textStyle="bold"
+					android:textSize="18sp"
+					android:textColor="@color/neutral_text"/>
 
 				<TextView
 					android:id="@+id/totalPrice"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
-					android:layout_marginTop="8dp"
-					android:text="0đ"/>
+					android:text="0đ"
+					android:textStyle="bold"
+					android:textSize="18sp"
+					android:textColor="@color/primary_red"/>
 			</LinearLayout>
 
 			<!-- Extra bottom space so content not hidden under fixed button -->
@@ -200,6 +355,7 @@
 		android:layout_width="0dp"
 		android:layout_height="56dp"
 		android:text="Tiếp tục thanh toán"
+		android:backgroundTint="#DC2626"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintBottom_toBottomOf="parent"
