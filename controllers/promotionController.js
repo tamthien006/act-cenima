@@ -30,10 +30,6 @@ const { status, type, page = 1, limit = 10 } = req.query;
 const query = {};
 if (status) {
 query.status = status;
-} else {
-query.status = 'active';
-query.startDate = { $lte: new Date() };
-query.endDate = { $gte: new Date() };
 }
 if (type) {
 query.type = type;
@@ -49,6 +45,34 @@ count: promotions.length,
 total: count,
 totalPages: Math.ceil(count / limit),
 currentPage: parseInt(page),
+data: promotions
+});
+} catch (err) {
+next(err);
+}
+};
+
+exports.getActivePromotions = async (req, res, next) => {
+try {
+const now = new Date();
+const query = {
+isActive: true,
+startDate: { $lte: now },
+endDate: { $gte: now }
+};
+// Filter out promotions that have reached max uses
+const allPromotions = await Promotion.find(query)
+.sort({ startDate: -1, createdAt: -1 });
+// Filter promotions that haven't reached max uses
+const promotions = allPromotions.filter(promo => {
+if (promo.maxUses && promo.currentUses >= promo.maxUses) {
+return false;
+}
+return true;
+});
+res.status(200).json({
+success: true,
+count: promotions.length,
 data: promotions
 });
 } catch (err) {

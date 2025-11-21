@@ -1,7 +1,7 @@
-const express = require('express');
-const { check } = require('express-validator');
-const { protect, admin, staff } = require('../middleware/authMiddleware');
-const {
+import express from 'express';
+import { check } from 'express-validator';
+import { protect, admin, staff } from '../middleware/authMiddleware.js';
+import {
   getMovies,
   getMovieById,
   createMovie,
@@ -11,14 +11,14 @@ const {
   getUpcomingMovies,
   getMoviesByGenre,
   searchMovies
-} = require('../controllers/movieController');
+} from '../controllers/movieController.js';
 
-const {
+import {
   getMovieShowtimes,
   getTheaterMovies,
   getNowShowingMovies,
   getMovieAvailability
-} = require('../controllers/showtimeController');
+} from '../controllers/showtimeController.js';
 
 const router = express.Router();
 
@@ -145,4 +145,4 @@ router.put(
 // @access  Private/Admin
 router.delete('/:id', protect, admin, deleteMovie);
 
-module.exports = router;
+export default router;

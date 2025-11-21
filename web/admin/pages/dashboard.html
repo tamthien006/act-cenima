@@ -1,0 +1,49 @@
+<div class="row cols-4">
+  <div class="card">
+    <h3>Doanh thu hôm nay</h3>
+    <div class="metric" id="mRevenue">₫0</div>
+    <span class="badge success" id="mRevenueNote">+0%</span>
+  </div>
+  <div class="card">
+    <h3>Vé đã bán</h3>
+    <div class="metric" id="mTickets">0</div>
+    <span class="badge success" id="mTicketsNote">+0</span>
+  </div>
+  <div class="card">
+    <h3>Phim đang chiếu</h3>
+    <div class="metric" id="mMovies">0</div>
+  </div>
+  <div class="card">
+    <h3>Khách hàng mới</h3>
+    <div class="metric" id="mCustomers">0</div>
+  </div>
+</div>
+
+<div class="row" style="margin-top:16px">
+  <div class="card">
+    <h3>Hoạt động gần đây</h3>
+    <table class="table" id="recentTbl">
+      <thead><tr><th>Thời gian</th><th>Nội dung</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+  import { apiGet } from "../shared/api.js";
+  (async () => {
+    try {
+      const d = await apiGet("/dashboard");
+      document.getElementById("mRevenue").innerText = (d.revenue || 0).toLocaleString("vi-VN") + "₫";
+      document.getElementById("mTickets").innerText = d.ticketsSold || 0;
+      document.getElementById("mMovies").innerText = d.moviesShowing || 0;
+      document.getElementById("mCustomers").innerText = d.newCustomers || 0;
+
+      const tb = document.querySelector("#recentTbl tbody");
+      tb.innerHTML = (d.recentActivities||[]).map(x => `<tr><td>${x.time}</td><td>${x.message}</td></tr>`).join("");
+    } catch (e) {
+      console.error(e);
+      document.getElementById("content").insertAdjacentHTML("beforeend", `<p class="muted">Không tải được dữ liệu dashboard.</p>`);
+    }
+  })();
+</script>
