@@ -317,7 +317,7 @@ exports.getUserById = async (req, res, next) => {
 // @access  Private/Admin
 exports.updateUser = async (req, res, next) => {
   try {
-    const { name, email, role, phone } = req.body;
+    const { name, email, role, phone, isActive } = req.body;
     
     let user = await User.findById(req.params.id);
     
@@ -333,6 +333,7 @@ exports.updateUser = async (req, res, next) => {
     if (email) user.email = email;
     if (role) user.role = role;
     if (phone) user.phone = phone;
+    if (typeof isActive === 'boolean') user.isActive = isActive;
 
     await user.save();
 

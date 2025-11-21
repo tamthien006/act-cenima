@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema(
   {
@@ -30,6 +31,11 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       match: [/^[0-9]{10,15}$/, 'Please add a valid phone number']
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true
     }
   },
   { timestamps: true }

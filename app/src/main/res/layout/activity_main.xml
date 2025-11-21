@@ -30,6 +30,7 @@
 
             <!-- Header -->
             <LinearLayout
+                android:id="@+id/headerContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -37,14 +38,19 @@
                 android:background="@drawable/bg_movie_card"
                 android:padding="16dp"
                 android:layout_marginBottom="20dp"
-                android:elevation="2dp">
+                android:elevation="2dp"
+                android:clickable="true"
+                android:focusable="true">
 
                 <ImageView
+                    android:id="@+id/avatarView"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:background="@drawable/bg_avatar_circle"
                     android:padding="8dp"
-                    android:src="@drawable/ic_user_circle" />
+                    android:src="@drawable/ic_user_circle"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -97,6 +103,7 @@
                 android:layout_marginBottom="20dp">
 
                 <TextView
+                    android:id="@+id/tabUpcoming"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -107,7 +114,9 @@
                     android:textSize="13sp"
                     android:background="@drawable/bg_tab_unselected"
                     android:paddingTop="10dp"
-                    android:paddingBottom="10dp" />
+                    android:paddingBottom="10dp"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <TextView
                     android:id="@+id/tabNow"
@@ -120,9 +129,12 @@
                     android:text="ĐANG CHIẾU"
                     android:textAllCaps="true"
                     android:textColor="@color/tab_active"
-                    android:textSize="13sp" />
+                    android:textSize="13sp"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <TextView
+                    android:id="@+id/tabEarly"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -133,7 +145,9 @@
                     android:textSize="13sp"
                     android:background="@drawable/bg_tab_unselected"
                     android:paddingTop="10dp"
-                    android:paddingBottom="10dp" />
+                    android:paddingBottom="10dp"
+                    android:clickable="true"
+                    android:focusable="true" />
             </LinearLayout>
 
             <!-- Movies grid -->
@@ -143,65 +157,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:orientation="horizontal">
-
-                    <include
-                        layout="@layout/view_movie_card_one"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="12dp" />
-
-                    <include
-                        layout="@layout/view_movie_card_two"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:orientation="horizontal">
-
-                    <include
-                        layout="@layout/view_movie_card_three"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="12dp" />
-
-                    <include
-                        layout="@layout/view_movie_card_four"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <include
-                        layout="@layout/view_movie_card_five"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="12dp" />
-
-                    <include
-                        layout="@layout/view_movie_card_six"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
-                </LinearLayout>
+                <!-- Movie cards will be added dynamically here -->
             </LinearLayout>
 
             <!-- Auth CTA -->

@@ -15,6 +15,7 @@ import vchung.ph59842.app_datve.models.ApiResponse;
 import vchung.ph59842.app_datve.models.AuthResponse;
 import vchung.ph59842.app_datve.models.LoginRequest;
 import vchung.ph59842.app_datve.models.Movie;
+import vchung.ph59842.app_datve.models.Promotion;
 import vchung.ph59842.app_datve.models.RegisterRequest;
 import vchung.ph59842.app_datve.models.User;
 
@@ -131,13 +132,10 @@ public interface ApiService {
     Call<ApiResponse<List<Object>>> getMyPayments();
     
     // Promotions
-    @GET("promotions")
-    Call<ApiResponse<List<Object>>> getPromotions();
-    
     @GET("promotions/active")
-    Call<ApiResponse<List<Object>>> getActivePromotions();
+    Call<ApiResponse<List<Promotion>>> getPromotions();
     
-    @GET("promotions/check")
-    Call<ApiResponse<Object>> checkPromotionCode(@Query("code") String code);
+    @GET("promotions/validate/{code}")
+    Call<ApiResponse<Promotion>> validatePromotion(@Path("code") String code);
 }
 

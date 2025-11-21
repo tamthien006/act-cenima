@@ -224,7 +224,7 @@ public class RegisterActivity extends AppCompatActivity {
                     if (authResponse.isSuccess() && authResponse.getToken() != null) {
                         // Lưu token và user (nếu có)
                         if (authResponse.getUser() != null) {
-                            userSession.saveLoginSession(authResponse.getToken(), authResponse.getUser());
+                        userSession.saveLoginSession(authResponse.getToken(), authResponse.getUser());
                         } else {
                             // Nếu user null, vẫn lưu token
                             android.util.Log.w("RegisterResponse", "User is null in response, but token exists. Saving token only.");
@@ -312,32 +312,32 @@ public class RegisterActivity extends AppCompatActivity {
 
     private String parseErrorMessage(String defaultMsg, String errorBody) {
         String errorMsg = defaultMsg;
-        try {
-            Gson gson = new Gson();
-            JsonObject jsonObject = gson.fromJson(errorBody, JsonObject.class);
-            if (jsonObject != null) {
-                if (jsonObject.has("message") && !jsonObject.get("message").isJsonNull()) {
-                    String msg = jsonObject.get("message").getAsString();
-                    if (msg != null && !msg.trim().isEmpty()) {
-                        errorMsg = msg;
-                    }
-                }
+                            try {
+                                Gson gson = new Gson();
+                                JsonObject jsonObject = gson.fromJson(errorBody, JsonObject.class);
+                                if (jsonObject != null) {
+                                    if (jsonObject.has("message") && !jsonObject.get("message").isJsonNull()) {
+                                        String msg = jsonObject.get("message").getAsString();
+                                        if (msg != null && !msg.trim().isEmpty()) {
+                                            errorMsg = msg;
+                                        }
+                                    }
                 if (errorMsg.equals(defaultMsg) && jsonObject.has("error") && !jsonObject.get("error").isJsonNull()) {
-                    String err = jsonObject.get("error").getAsString();
-                    if (err != null && !err.trim().isEmpty()) {
-                        errorMsg = err;
-                    }
-                }
+                                        String err = jsonObject.get("error").getAsString();
+                                        if (err != null && !err.trim().isEmpty()) {
+                                            errorMsg = err;
+                                        }
+                                    }
                 if (jsonObject.has("errors")) {
                     if (jsonObject.get("errors").isJsonObject()) {
-                        JsonObject errors = jsonObject.getAsJsonObject("errors");
-                        if (errors.has("email") && !errors.get("email").isJsonNull()) {
+                                        JsonObject errors = jsonObject.getAsJsonObject("errors");
+                                        if (errors.has("email") && !errors.get("email").isJsonNull()) {
                             errorMsg = extractFirstError(errors.get("email"));
                         } else if (errors.has("phone") && !errors.get("phone").isJsonNull()) {
                             errorMsg = extractFirstError(errors.get("phone"));
-                        } else if (errors.has("password") && !errors.get("password").isJsonNull()) {
+                                        } else if (errors.has("password") && !errors.get("password").isJsonNull()) {
                             errorMsg = extractFirstError(errors.get("password"));
-                        } else if (errors.has("name") && !errors.get("name").isJsonNull()) {
+                                        } else if (errors.has("name") && !errors.get("name").isJsonNull()) {
                             errorMsg = extractFirstError(errors.get("name"));
                         }
                     } else if (jsonObject.get("errors").isJsonArray() && jsonObject.get("errors").getAsJsonArray().size() > 0) {
@@ -346,12 +346,12 @@ public class RegisterActivity extends AppCompatActivity {
                         if (firstError.has("msg") && !firstError.get("msg").isJsonNull()) {
                             errorMsg = firstError.get("msg").getAsString();
                         }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            android.util.Log.d("RegisterError", "Cannot parse error JSON: " + e.getMessage());
-        }
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                android.util.Log.d("RegisterError", "Cannot parse error JSON: " + e.getMessage());
+                            }
         return errorMsg;
     }
 
@@ -366,18 +366,18 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void showFieldError(String errorMsg) {
-        String lowerError = errorMsg.toLowerCase();
+                    String lowerError = errorMsg.toLowerCase();
         if (lowerError.contains("phone") || lowerError.contains("số điện thoại") || lowerError.contains("điện thoại")) {
             showError(tvRegisterPhoneError, errorMsg);
         } else if (lowerError.contains("email") || lowerError.contains("mail")) {
-            showError(tvRegisterEmailError, errorMsg);
-        } else if (lowerError.contains("password") || lowerError.contains("mật khẩu")) {
-            showError(tvRegisterPasswordError, errorMsg);
-        } else if (lowerError.contains("name") || lowerError.contains("tên")) {
-            showError(tvRegisterNameError, errorMsg);
-        } else {
-            showError(tvRegisterEmailError, errorMsg);
-        }
+                        showError(tvRegisterEmailError, errorMsg);
+                    } else if (lowerError.contains("password") || lowerError.contains("mật khẩu")) {
+                        showError(tvRegisterPasswordError, errorMsg);
+                    } else if (lowerError.contains("name") || lowerError.contains("tên")) {
+                        showError(tvRegisterNameError, errorMsg);
+                    } else {
+                        showError(tvRegisterEmailError, errorMsg);
+                    }
     }
 
     private void clearErrors() {

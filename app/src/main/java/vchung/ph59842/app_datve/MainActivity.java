@@ -3,6 +3,7 @@ package vchung.ph59842.app_datve;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -27,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvUserStatus;
     private View btnHeaderLogin;
     private View authCtaContainer;
+    private TextView tabUpcoming;
+    private TextView tabNow;
+    private TextView tabEarly;
+    private String currentTab = "showing"; // Default to "ĐANG CHIẾU"
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +61,36 @@ public class MainActivity extends AppCompatActivity {
         tvUserStatus = findViewById(R.id.tvUserStatus);
         btnHeaderLogin = findViewById(R.id.btnHeaderLogin);
         authCtaContainer = findViewById(R.id.authCtaContainer);
+        
+        // Add click listener to avatar and user name
+        ImageView avatarView = findViewById(R.id.avatarView);
+        
+        View.OnClickListener openAccount = view -> {
+            if (userSession.isLoggedIn()) {
+                Intent intent = AccountActivity.createIntent(MainActivity.this);
+                startActivity(intent);
+            } else {
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+        };
+        
+        // Set click listener on header area (avatar + name)
+        View headerContainer = findViewById(R.id.headerContainer);
+        if (headerContainer != null) {
+            headerContainer.setOnClickListener(openAccount);
+            headerContainer.setClickable(true);
+        }
+        
+        if (tvUserName != null) {
+            tvUserName.setOnClickListener(openAccount);
+            tvUserName.setClickable(true);
+        }
+        
+        if (avatarView != null) {
+            avatarView.setOnClickListener(openAccount);
+            avatarView.setClickable(true);
+        }
 
         NestedScrollView contentScroll = findViewById(R.id.contentScroll);
         View loginButton = findViewById(R.id.btnOpenLogin);
@@ -136,6 +171,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         updateNavSelection(true, homeIcon, homeLabel, scheduleIcon, scheduleLabel);
+
+        // Initialize tabs
+        tabUpcoming = findViewById(R.id.tabUpcoming);
+        tabNow = findViewById(R.id.tabNow);
+        tabEarly = findViewById(R.id.tabEarly);
+
+        // Set up tab click listeners
+        if (tabUpcoming != null) {
+            tabUpcoming.setOnClickListener(view -> switchTab("upcoming"));
+        }
+        if (tabNow != null) {
+            tabNow.setOnClickListener(view -> switchTab("showing"));
+        }
+        if (tabEarly != null) {
+            tabEarly.setOnClickListener(view -> switchTab("early"));
+        }
+
+        // Update tab UI to show default selected tab
+        updateTabUI();
 
         // Load movies
         loadMovies();
@@ -276,9 +330,80 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void switchTab(String tab) {
+        if (tab.equals(currentTab)) {
+            return; // Already on this tab
+        }
+        
+        currentTab = tab;
+        updateTabUI();
+        loadMovies();
+    }
+
+    private void updateTabUI() {
+        // Reset all tabs to unselected state
+        if (tabUpcoming != null) {
+            tabUpcoming.setBackgroundResource(R.drawable.bg_tab_unselected);
+            tabUpcoming.setTextColor(ContextCompat.getColor(this, R.color.neutral_subtext));
+            android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) tabUpcoming.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            tabUpcoming.setLayoutParams(params);
+        }
+        
+        if (tabNow != null) {
+            tabNow.setBackgroundResource(R.drawable.bg_tab_unselected);
+            tabNow.setTextColor(ContextCompat.getColor(this, R.color.neutral_subtext));
+            android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) tabNow.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            tabNow.setLayoutParams(params);
+        }
+        
+        if (tabEarly != null) {
+            tabEarly.setBackgroundResource(R.drawable.bg_tab_unselected);
+            tabEarly.setTextColor(ContextCompat.getColor(this, R.color.neutral_subtext));
+            android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) tabEarly.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            tabEarly.setLayoutParams(params);
+        }
+        
+        // Set selected tab
+        TextView selectedTab = null;
+        if (currentTab.equals("upcoming") && tabUpcoming != null) {
+            selectedTab = tabUpcoming;
+        } else if (currentTab.equals("showing") && tabNow != null) {
+            selectedTab = tabNow;
+        } else if (currentTab.equals("early") && tabEarly != null) {
+            selectedTab = tabEarly;
+        }
+        
+        if (selectedTab != null) {
+            selectedTab.setBackgroundResource(R.drawable.bg_tab_selected);
+            selectedTab.setTextColor(ContextCompat.getColor(this, R.color.tab_active));
+            android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) selectedTab.getLayoutParams();
+            int margin = (int) (8 * getResources().getDisplayMetrics().density); // 8dp
+            params.setMargins(margin, 0, margin, 0);
+            selectedTab.setLayoutParams(params);
+        }
+    }
+
     private void loadMovies() {
         ApiService apiService = vchung.ph59842.app_datve.api.ApiClient.getApiService(this);
-        apiService.getNowShowingMovies("showing").enqueue(new retrofit2.Callback<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>>() {
+        
+        retrofit2.Call<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>> call;
+        
+        if (currentTab.equals("upcoming")) {
+            // Load upcoming movies
+            call = apiService.getUpcomingMovies();
+        } else if (currentTab.equals("early")) {
+            // Load early showtimes - use showing movies with early showtimes filter
+            // For now, we'll use showing movies and filter client-side
+            call = apiService.getNowShowingMovies("showing");
+        } else {
+            // Default: showing movies
+            call = apiService.getNowShowingMovies("showing");
+        }
+        
+        call.enqueue(new retrofit2.Callback<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>>() {
             @Override
             public void onResponse(retrofit2.Call<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>> call, 
                                  retrofit2.Response<vchung.ph59842.app_datve.models.ApiResponse<List<Movie>>> response) {
@@ -342,117 +467,172 @@ public class MainActivity extends AppCompatActivity {
         // Store movies list for click listeners
         this.moviesList = movies;
 
-        // Bind movies to the 6 movie cards (max 6 movies)
-        int maxMovies = Math.min(movies.size(), 6);
-        for (int i = 0; i < maxMovies; i++) {
-            Movie movie = movies.get(i);
-            bindMovieToCard(movie, i + 1);
+        android.util.Log.d("MainActivity", "Binding " + movies.size() + " movies to UI");
+        
+        // Get the movie grid container
+        android.widget.LinearLayout movieGrid = findViewById(R.id.movieGrid);
+        if (movieGrid == null) {
+            android.util.Log.e("MainActivity", "Movie grid container not found");
+            return;
+        }
+        
+        // Clear existing views
+        movieGrid.removeAllViews();
+        
+        // Create rows of 2 movies each
+        for (int i = 0; i < movies.size(); i += 2) {
+            // Create a horizontal LinearLayout for each row
+            android.widget.LinearLayout rowLayout = new android.widget.LinearLayout(this);
+            rowLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            rowLayout.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+            
+            if (i > 0) {
+                // Add margin top for rows after the first
+                android.widget.LinearLayout.LayoutParams params = (android.widget.LinearLayout.LayoutParams) rowLayout.getLayoutParams();
+                params.topMargin = (int) (16 * getResources().getDisplayMetrics().density); // 16dp
+                rowLayout.setLayoutParams(params);
+            }
+            
+            // Add first movie in the row
+            if (i < movies.size()) {
+                View card1 = createMovieCard(movies.get(i), i);
+                android.widget.LinearLayout.LayoutParams card1Params = new android.widget.LinearLayout.LayoutParams(
+                    0,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1.0f
+                );
+                card1Params.setMarginEnd((int) (12 * getResources().getDisplayMetrics().density)); // 12dp
+                card1.setLayoutParams(card1Params);
+                rowLayout.addView(card1);
+            }
+            
+            // Add second movie in the row (if exists)
+            if (i + 1 < movies.size()) {
+                View card2 = createMovieCard(movies.get(i + 1), i + 1);
+                android.widget.LinearLayout.LayoutParams card2Params = new android.widget.LinearLayout.LayoutParams(
+                    0,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1.0f
+                );
+                card2.setLayoutParams(card2Params);
+                rowLayout.addView(card2);
+            }
+            
+            movieGrid.addView(rowLayout);
         }
     }
     
-    private List<Movie> moviesList;
-
-    private void bindMovieToCard(Movie movie, int cardIndex) {
-        try {
-            // Find views for this card
-            ImageView posterView = findViewById(getResourceId("moviePoster" + cardIndex, "id"));
-            TextView titleView = findViewById(getResourceId("movieTitle" + cardIndex, "id"));
-            TextView infoView = findViewById(getResourceId("movieInfo" + cardIndex, "id"));
-            TextView ratingView = findViewById(getResourceId("movieRating" + cardIndex, "id"));
-            TextView hotView = findViewById(getResourceId("movieHot" + cardIndex, "id"));
-
-            if (posterView == null || titleView == null || infoView == null) {
-                android.util.Log.w("MainActivity", "Could not find views for card " + cardIndex);
-                return;
+    private View createMovieCard(Movie movie, int index) {
+        // Inflate the movie card layout
+        View cardView = getLayoutInflater().inflate(R.layout.view_movie_card_one, null);
+        
+        // Find views in the card
+        ImageView posterView = cardView.findViewById(R.id.moviePoster1);
+        TextView titleView = cardView.findViewById(R.id.movieTitle1);
+        TextView infoView = cardView.findViewById(R.id.movieInfo1);
+        TextView ratingView = cardView.findViewById(R.id.movieRating1);
+        TextView hotView = cardView.findViewById(R.id.movieHot1);
+        
+        if (posterView == null || titleView == null || infoView == null) {
+            android.util.Log.e("MainActivity", "Could not find views in movie card template");
+            return cardView;
+        }
+        
+        // Set click listener on the card
+        cardView.setOnClickListener(view -> {
+            Intent intent = MovieDetailActivity.createIntent(MainActivity.this, movie);
+            startActivity(intent);
+        });
+        cardView.setClickable(true);
+        cardView.setFocusable(true);
+        
+        // Load poster image using Glide
+        String posterUrl = movie.getPosterUrl();
+        if (posterUrl != null && !posterUrl.isEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                .load(posterUrl)
+                .placeholder(android.R.color.darker_gray)
+                .error(android.R.color.darker_gray)
+                .into(posterView);
+        } else {
+            posterView.setImageResource(android.R.color.darker_gray);
+        }
+        
+        // Set title
+        if (movie.getTitle() != null) {
+            titleView.setText(movie.getTitle());
+        }
+        
+        // Build info string: genre • duration
+        StringBuilder infoBuilder = new StringBuilder();
+        if (movie.getGenre() != null && !movie.getGenre().isEmpty()) {
+            infoBuilder.append(movie.getGenre().get(0));
+            if (movie.getGenre().size() > 1) {
+                infoBuilder.append(", ").append(movie.getGenre().get(1));
             }
-
-            // Find parent LinearLayout of the card to add click listener
-            // The card structure is: LinearLayout (root) > FrameLayout > ImageView
-            View parent = (View) posterView.getParent();
-            View cardParent = parent != null ? (View) parent.getParent() : null;
-            if (cardParent instanceof android.widget.LinearLayout) {
-                final Movie movieToPass = movie; // Final reference for lambda
-                cardParent.setOnClickListener(view -> {
-                    Intent intent = MovieDetailActivity.createIntent(MainActivity.this, movieToPass);
-                    startActivity(intent);
-                });
-                cardParent.setClickable(true);
-                cardParent.setFocusable(true);
+        }
+        if (movie.getDuration() > 0) {
+            if (infoBuilder.length() > 0) {
+                infoBuilder.append(" • ");
             }
-
-            // Load poster image using Glide
-            String posterUrl = movie.getPosterUrl();
-            if (posterUrl != null && !posterUrl.isEmpty()) {
-                com.bumptech.glide.Glide.with(this)
-                    .load(posterUrl)
-                    .placeholder(android.R.color.darker_gray)
-                    .error(android.R.color.darker_gray)
-                    .into(posterView);
-            }
-
-            // Set title
-            if (movie.getTitle() != null) {
-                titleView.setText(movie.getTitle());
-            }
-
-            // Build info string: genre • duration
-            StringBuilder infoBuilder = new StringBuilder();
-            if (movie.getGenre() != null && !movie.getGenre().isEmpty()) {
-                infoBuilder.append(movie.getGenre().get(0));
-                if (movie.getGenre().size() > 1) {
-                    infoBuilder.append(", ").append(movie.getGenre().get(1));
-                }
-            }
-            if (movie.getDuration() > 0) {
-                if (infoBuilder.length() > 0) {
-                    infoBuilder.append(" • ");
-                }
-                infoBuilder.append(movie.getDuration()).append("'");
-            }
-            infoView.setText(infoBuilder.toString());
-
-            // Set rating
-            if (ratingView != null) {
-                String rating = movie.getRating();
-                if (rating != null && !rating.isEmpty()) {
-                    // Format rating (e.g., "9" -> "T9", "8.7" -> "T8.7")
-                    try {
-                        double ratingValue = Double.parseDouble(rating);
-                        if (ratingValue >= 8.0) {
-                            ratingView.setText("T" + (int)ratingValue);
-                        } else {
-                            ratingView.setText("T" + rating);
-                        }
-                    } catch (NumberFormatException e) {
+            infoBuilder.append(movie.getDuration()).append("'");
+        }
+        infoView.setText(infoBuilder.toString());
+        
+        // Set rating
+        if (ratingView != null) {
+            String rating = movie.getRating();
+            if (rating != null && !rating.isEmpty()) {
+                try {
+                    double ratingValue = Double.parseDouble(rating);
+                    if (ratingValue >= 8.0) {
+                        ratingView.setText("T" + (int)ratingValue);
+                    } else {
                         ratingView.setText("T" + rating);
                     }
-                } else {
-                    ratingView.setText("T13"); // Default
+                } catch (NumberFormatException e) {
+                    ratingView.setText("T" + rating);
                 }
+            } else {
+                ratingView.setText("T13"); // Default
             }
-
-            // Show/hide HOT badge based on rating or status
-            if (hotView != null) {
-                String rating = movie.getRating();
-                boolean isHot = false;
-                if (rating != null && !rating.isEmpty()) {
-                    try {
-                        double ratingValue = Double.parseDouble(rating);
-                        isHot = ratingValue >= 8.5;
-                    } catch (NumberFormatException e) {
-                        // Keep default visibility
-                    }
-                }
-                hotView.setVisibility(isHot ? View.VISIBLE : View.GONE);
-            }
-
-        } catch (Exception e) {
-            android.util.Log.e("MainActivity", "Error binding movie to card " + cardIndex, e);
         }
+        
+        // Show/hide HOT badge based on rating
+        if (hotView != null) {
+            String rating = movie.getRating();
+            boolean isHot = false;
+            if (rating != null && !rating.isEmpty()) {
+                try {
+                    double ratingValue = Double.parseDouble(rating);
+                    isHot = ratingValue >= 8.5;
+                } catch (NumberFormatException e) {
+                    // Keep default visibility
+                }
+            }
+            hotView.setVisibility(isHot ? View.VISIBLE : View.GONE);
+        }
+        
+        return cardView;
     }
-
-    private int getResourceId(String name, String type) {
-        return getResources().getIdentifier(name, type, getPackageName());
+    
+    private List<Movie> moviesList;
+    
+    private <T extends View> View findViewByType(ViewGroup parent, Class<T> type) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (type.isInstance(child)) {
+                return child;
+            }
+            if (child instanceof ViewGroup) {
+                View found = findViewByType((ViewGroup) child, type);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private void updateNavSelection(boolean isHomeSelected,
