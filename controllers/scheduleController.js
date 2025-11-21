@@ -3,7 +3,7 @@ const Movie = require('../models/Movie');
 const Theater = require('../models/Theater');
 const Room = require('../models/Room');
 const { validationResult } = require('express-validator');
-const moment = require('moment');
+const Ticket = require('../models/Ticket');
 
 // @desc    Create a new schedule
 // @route   POST /api/schedules
@@ -94,6 +94,46 @@ exports.createSchedule = async (req, res, next) => {
   }
 };
 
+// @desc    Get seat map and pricing for a schedule
+// @route   GET /api/schedules/:id/seats
+// @access  Public (staff uses token but not required here)
+exports.getScheduleSeats = async (req, res, next) => {
+  try {
+    const schedule = await Schedule.findById(req.params.id).lean();
+    if (!schedule) {
+      return res.status(404).json({ success: false, message: 'Schedule not found' });
+    }
+
+    const room = await Room.findById(schedule.roomId).lean();
+    if (!room) {
+      return res.status(404).json({ success: false, message: 'Room not found' });
+    }
+
+    // Seats already booked for this schedule
+    const tickets = await Ticket.find({
+      scheduleId: schedule._id,
+      status: { $nin: ['cancelled', 'refunded'] }
+    }).lean();
+
+    const booked = new Set();
+    tickets.forEach(t => (t.seats || []).forEach(s => booked.add(s.code)));
+
+    const seats = (room.seats || []).map(s => ({
+      code: s.code,
+      type: s.type,
+      row: s.row,
+      column: s.column,
+      status: booked.has(s.code) ? 'booked' : 'available',
+      price: s.type === 'vip' ? (schedule.priceTable?.vip || 0) : (schedule.priceTable?.standard || 0)
+    }));
+
+    const basePrice = schedule.priceTable?.standard || 0;
+    return res.status(200).json({ success: true, data: { seats, price: basePrice } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // @desc    Get all schedules with filtering
 // @route   GET /api/schedules
 // @access  Public
@@ -109,13 +149,16 @@ exports.getSchedules = async (req, res, next) => {
       page = 1, 
       limit = 10 
     } = req.query;
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.max(1, Math.min(1000, parseInt(limit) || 10));
 
     // Build query
     const query = {};
     
-    if (movieId) query.movie = movieId;
-    if (theaterId) query.theater = theaterId;
-    if (roomId) query.room = roomId;
+    if (movieId) query.movieId = movieId;
+    if (theaterId) query.cinemaId = theaterId;
+    if (req.query.cinemaId) query.cinemaId = req.query.cinemaId;
+    if (roomId) query.roomId = roomId;
     
     // Filter by date
     if (date) {
@@ -142,26 +185,42 @@ exports.getSchedules = async (req, res, next) => {
     }
 
     // Execute query with pagination
-    const [schedules, count] = await Promise.all([
+    const [raw, count] = await Promise.all([
       Schedule.find(query)
-        .populate('movie', 'title duration posterUrl')
-        .populate('theater', 'name location')
-        .populate('room', 'name capacity')
+        .setOptions({ strictPopulate: false })
+        .populate('movieId', 'title duration posterUrl')
+        .populate('cinemaId', 'name address')
+        .populate('roomId', 'name capacity')
         .sort({ startTime: 1 })
-        .limit(limit * 1)
-        .skip((page - 1) * limit),
+        .limit(limitNum)
+        .skip((pageNum - 1) * limitNum)
+        .lean(),
       Schedule.countDocuments(query)
     ]);
 
-    const totalPages = Math.ceil(count / limit);
-    const hasMore = page < totalPages;
+    // Alias fields for frontend compatibility
+    const schedules = raw.map(it => {
+      const movieObj = it.movieId || it.movie;
+      const roomObj = it.roomId || it.room;
+      return {
+        ...it,
+        movie: movieObj,
+        theater: it.cinemaId || it.theater,
+        room: roomObj,
+        movieTitle: movieObj?.title || undefined,
+        roomName: roomObj?.name || undefined
+      };
+    });
+
+    const totalPages = Math.ceil(count / limitNum);
+    const hasMore = pageNum < totalPages;
 
     res.status(200).json({
       success: true,
       count: schedules.length,
       total: count,
       totalPages,
-      currentPage: parseInt(page),
+      currentPage: pageNum,
       hasMore,
       data: schedules
     });
@@ -179,11 +238,23 @@ exports.getSchedules = async (req, res, next) => {
 // @access  Public
 exports.getScheduleById = async (req, res, next) => {
   try {
-    const schedule = await Schedule.findById(req.params.id)
-      .populate('movie', 'title duration posterUrl')
-      .populate('theater', 'name location')
-      .populate('room', 'name capacity')
-      .populate('createdBy', 'name email');
+    const doc = await Schedule.findById(req.params.id)
+      .populate('movieId', 'title duration posterUrl')
+      .populate('cinemaId', 'name address')
+      .populate('roomId', 'name capacity')
+      .lean();
+    const schedule = doc && (() => {
+      const movieObj = doc.movieId || doc.movie;
+      const roomObj = doc.roomId || doc.room;
+      return {
+        ...doc,
+        movie: movieObj,
+        theater: doc.cinemaId || doc.theater,
+        room: roomObj,
+        movieTitle: movieObj?.title || undefined,
+        roomName: roomObj?.name || undefined
+      };
+    })();
 
     if (!schedule) {
       return res.status(404).json({

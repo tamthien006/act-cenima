@@ -98,9 +98,12 @@ paymentSchema.pre('save', async function(next) {
       if (ticket.paymentStatus !== this.status) {
         ticket.paymentStatus = this.status;
         
-        // If payment is successful, update ticket status to paid
+        // If payment is successful, mark ticket as confirmed and set confirmedAt
         if (this.status === 'success' && ticket.status === 'pending') {
-          ticket.status = 'paid';
+          ticket.status = 'confirmed';
+          if (!ticket.confirmedAt) {
+            ticket.confirmedAt = new Date();
+          }
         }
         
         // If payment is refunded, update ticket status to refunded

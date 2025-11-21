@@ -254,4 +254,4 @@ promotionSchema.methods.incrementUsage = async function() {
   return this.save();
 };
 
-module.exports = mongoose.model('promotions', promotionSchema);
+module.exports = mongoose.model('Promotion', promotionSchema);

@@ -9,7 +9,8 @@ const {
   deleteSchedule,
   getSchedulesByMovie,
   getSchedulesByTheater,
-  getAvailableTimeSlots
+  getAvailableTimeSlots,
+  getScheduleSeats
 } = require('../controllers/scheduleController');
 
 const router = express.Router();
@@ -29,12 +30,13 @@ const router = express.Router();
 router.get('/', [
   check('movieId', 'ID phim không hợp lệ').optional().isMongoId(),
   check('theaterId', 'ID rạp không hợp lệ').optional().isMongoId(),
+  check('cinemaId', 'ID rạp không hợp lệ').optional().isMongoId(),
   check('roomId', 'ID phòng chiếu không hợp lệ').optional().isMongoId(),
   check('date', 'Định dạng ngày không hợp lệ (YYYY-MM-DD)').optional().isISO8601(),
   check('startTime', 'Định dạng giờ bắt đầu không hợp lệ (HH:MM)').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
   check('endTime', 'Định dạng giờ kết thúc không hợp lệ (HH:MM)').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
   check('page', 'Số trang phải là số dương').optional().isInt({ min: 1 }),
-  check('limit', 'Giới hạn kết quả phải từ 1 đến 50').optional().isInt({ min: 1, max: 50 })
+  check('limit', 'Giới hạn kết quả phải từ 1 đến 1000').optional().isInt({ min: 1, max: 1000 })
 ], getSchedules);
 
 // @route   GET /api/schedules/movie/:movieId
@@ -87,6 +89,9 @@ router.get('/available-times', [
 // Tham số đường dẫn:
 // - id: ID của lịch chiếu (định dạng MongoDB ID)
 router.get('/:id', getScheduleById);
+
+// Seat map for a schedule
+router.get('/:id/seats', getScheduleSeats);
 
 // @route   POST /api/schedules
 // @desc    Tạo mới một lịch chiếu (Quản trị viên/Nhân viên)
