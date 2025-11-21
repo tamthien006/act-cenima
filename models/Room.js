@@ -23,9 +23,9 @@ const seatSchema = new mongoose.Schema({
 
 const roomSchema = new mongoose.Schema(
   {
-    theater: { 
+    cinemaId: { 
       type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Theater', 
+      ref: 'Cinema', 
       required: [true, 'Please specify a theater'],
       index: true 
     },
@@ -161,14 +161,14 @@ roomSchema.virtual('showtimes', {
 
 // Virtual for theater details
 roomSchema.virtual('theaterInfo', {
-  ref: 'Theater',
-  localField: 'theater',
+  ref: 'Cinema',
+  localField: 'cinemaId',
   foreignField: '_id',
   justOne: true
 });
 
 // Indexes for better query performance
-roomSchema.index({ theater: 1, name: 1 }, { unique: true });
+roomSchema.index({ cinemaId: 1, name: 1 }, { unique: true });
 roomSchema.index({ screenType: 1 });
 roomSchema.index({ isActive: 1 });
 
@@ -180,6 +180,6 @@ roomSchema.pre('remove', async function(next) {
 });
 
 // Compound index to ensure unique room names within a theater
-roomSchema.index({ theater: 1, name: 1 }, { unique: true });
+roomSchema.index({ cinemaId: 1, name: 1 }, { unique: true });
 
 module.exports = mongoose.model('Room', roomSchema);

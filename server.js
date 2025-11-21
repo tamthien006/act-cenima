@@ -27,6 +27,9 @@ const app = express();
 // Trust proxy for rate limiting behind reverse proxy (like Nginx, Heroku, etc.)
 app.set('trust proxy', 1);
 
+// Disable ETag to reduce 304 responses for admin UI
+app.set('etag', false);
+
 // Set security HTTP headers
 app.use(helmet());
 
@@ -93,6 +96,7 @@ app.use('/api/v1/promotions', require('./routes/promotionRoutes'));
 app.use('/api/v1/combos', require('./routes/comboRoutes'));
 app.use('/api/v1/reviews', require('./routes/reviewRoutes'));
 app.use('/api/v1/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/v1/staff', require('./routes/staffRoutes'));
 
 // Health check endpoint
 app.get('/api/v1/health', (req, res) => {
