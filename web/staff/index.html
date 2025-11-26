@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACT Cinema Staff</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <div class="brand-logo"></div>
+        <h2>Staff</h2>
+      </div>
+      <ul class="menu">
+        <li data-screen="sell">🧾 Bán vé</li>
+        <li data-screen="seats">🪑 Tình trạng ghế</li>
+        <li data-screen="scan">🔎 Quét vé</li>
+      </ul>
+    </aside>
+    <main>
+      <header><h2 id="screenTitle">Bán vé</h2></header>
+      <section id="screen"></section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { apiGet, apiPost } from "../shared/api.js";
+
+    const screen = document.getElementById("screen");
+    const title = document.getElementById("screenTitle");
+
+    const views = {
+      sell: async () => {
+        screen.innerHTML = `
+          <div class="card">
+            <h3>Bán vé nhanh</h3>
+            <div class="actions">
+              <input id="stId" placeholder="showtimeId">
+              <input id="seatCode" placeholder="mã ghế (VD: A1)">
+              <button class="btn brand" id="btnSell">Bán</button>
+            </div>
+            <p id="msg" class="muted"></p>
+          </div>
+        `;
+        document.getElementById("btnSell").addEventListener("click", async () => {
+          const stId = document.getElementById("stId").value.trim();
+          const sc = document.getElementById("seatCode").value.trim();
+          const msg = document.getElementById("msg");
+          msg.textContent = "Đang xử lý...";
+          try {
+            const rsv = await apiPost("/reservations", { showtimeId: stId, seats: [sc] });
+            const order = await apiPost("/orders", { reservationId: rsv.id, total: 90000 });
+            msg.textContent = "Thành công! Mã đơn: " + order._id;
+          } catch (e) {
+            msg.textContent = "Lỗi: " + e.message;
+          }
+        });
+      },
+      seats: async () => {
+        const stId = prompt("Nhập showtimeId:");
+        if (!stId) return;
+        const data = await apiGet(`/showtimes/${stId}/seats`);
+        screen.innerHTML = `<div class="card"><h3>Sơ đồ ghế</h3><div id="grid"></div></div>`;
+        const grid = document.getElementById("grid");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "repeat(10, 40px)";
+        grid.style.gap = "6px";
+        (data.seats||[]).forEach(seat => {
+          const b = document.createElement("button");
+          b.textContent = seat.code;
+          b.className = "btn";
+          b.style.background = (data.bookedSeats||[]).includes(seat.code) ? "#7f1d1d" : "#14532d";
+          grid.appendChild(b);
+        });
+      },
+      scan: async () => {
+        screen.innerHTML = `<div class="card"><h3>Quét vé</h3><p class="muted">Tạm thời mô phỏng: nhập mã đơn để kiểm tra.</p>
+          <div class="actions"><input id="orderId" placeholder="Order ID"><button class="btn" id="btnCheck">Kiểm tra</button></div>
+          <pre id="result" class="muted"></pre></div>`;
+        document.getElementById("btnCheck").addEventListener("click", async () => {
+          const id = document.getElementById("orderId").value.trim();
+          try{
+            const data = await apiGet(`/orders/${id}`);
+            document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+          }catch(e){
+            document.getElementById("result").textContent = "Không tìm thấy đơn hoặc lỗi: " + e.message;
+          }
+        });
+      }
+    };
+
+    function setScreen(name){
+      title.innerText = document.querySelector(`.menu li[data-screen='${name}']`).innerText.replace(/^[^ ]+ /,'');
+      views[name]();
+    }
+
+    document.querySelectorAll(".menu li").forEach(li => {
+      li.addEventListener("click", () => setScreen(li.dataset.screen));
+    });
+
+    setScreen("sell");
+  </script>
+</body>
+</html>

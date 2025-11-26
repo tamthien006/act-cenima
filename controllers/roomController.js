@@ -1,5 +1,5 @@
 const Room = require('../models/Room');
-const Theater = require('../models/Theater');
+const Cinema = require('../models/Cinema');
 const { validationResult } = require('express-validator');
 
 exports.getRooms = async (req, res, next) => {
@@ -7,7 +7,7 @@ exports.getRooms = async (req, res, next) => {
     const { cinemaId, screenType, minCapacity, page = 1, limit = 10 } = req.query;
     const query = {};
     if (cinemaId) {
-      query.theater = cinemaId;
+      query.cinemaId = cinemaId;
     }
     if (screenType) {
       query.screenType = screenType;
@@ -16,7 +16,7 @@ exports.getRooms = async (req, res, next) => {
       query.capacity = { $gte: parseInt(minCapacity) };
     }
     const rooms = await Room.find(query)
-      .populate('theater', 'name address')
+      .populate({ path: 'cinemaId', select: 'name address', strictPopulate: false })
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ name: 1 });
@@ -44,7 +44,7 @@ exports.getRoomWithSeats = async (req, res, next) => {
       });
     }
     const room = await Room.findById(req.params.roomId)
-      .populate('theater', 'name');
+      .populate({ path: 'cinemaId', select: 'name', strictPopulate: false });
     if (!room) {
       return res.status(404).json({
         success: false,
@@ -58,7 +58,7 @@ exports.getRoomWithSeats = async (req, res, next) => {
         room: {
           _id: room._id,
           name: room.name,
-          cinema: room.theater,
+          cinema: room.cinemaId,
           screenType: room.screenType,
           capacity: room.capacity
         },
@@ -80,10 +80,9 @@ exports.createRoom = async (req, res, next) => {
         errors: errors.array() 
       });
     }
-    const { name, cinemaId, capacity, screenType, seats, rows, seatsPerRow } = req.body;
-
-    const theater = await Theater.findById(cinemaId);
-    if (!theater) {
+    const { name, cinemaId, capacity, screenType, seats } = req.body;
+    const cinema = await Cinema.findById(cinemaId);
+    if (!cinema) {
       return res.status(404).json({
         success: false,
         message: `Cinema not found with id of ${cinemaId}`
@@ -93,25 +92,20 @@ exports.createRoom = async (req, res, next) => {
     if (seats && Array.isArray(seats)) {
       room = await Room.create({
         name,
-        theater: cinemaId,
+        cinemaId,
         capacity,
         screenType,
-        seats,
-        rows,
-        seatsPerRow
+        seats
       });
     } else {
       room = await Room.create({
         name,
-        theater: cinemaId,
+        cinemaId,
         capacity,
-        screenType,
-        rows,
-        seatsPerRow
+        screenType
       });
       await room.generateSeatMap();
     }
-
     res.status(201).json({
       success: true,
       data: room

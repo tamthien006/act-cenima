@@ -92,7 +92,9 @@ success: false,
 errors: errors.array() 
 });
 }
-const combo = await Combo.create(req.body);
+ // attach creator from auth middleware
+ const payload = { ...req.body, createdBy: req.user && req.user._id ? req.user._id : undefined };
+ const combo = await Combo.create(payload);
 res.status(201).json({
 success: true,
 data: combo
@@ -118,6 +120,7 @@ message: 'Combo not found'
 });
 }
 const { _id, createdAt, updatedAt, ...updateData } = req.body;
+ updateData.updatedBy = req.user && req.user._id ? req.user._id : updateData.updatedBy;
 combo = await Combo.findByIdAndUpdate(req.params.id, updateData, {
 new: true,
 runValidators: true

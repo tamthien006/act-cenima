@@ -1,8 +1,9 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import colors from 'colors';
 
-const connectDB = async () => {
+export const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -41,10 +42,12 @@ const connectDB = async () => {
     } catch (idxErr) {
       console.error('Failed to sync Movie indexes:', idxErr.message);
     }
+    console.log(colors.cyan.underline(`✅ MongoDB Connected: ${conn.connection.host}`));
+    return conn;
   } catch (error) {
-    console.error(`Error: ${error.message}`.red.underline.bold);
+    console.error(colors.red.underline.bold(`❌ Error: ${error.message}`));
     process.exit(1);
   }
 };
 
-module.exports = connectDB;
+export default connectDB;

@@ -249,24 +249,14 @@ exports.getSchedules = async (req, res, next) => {
     // Alias fields for frontend compatibility
     const schedules = raw.map(it => {
       const movieObj = it.movieId || it.movie;
-      const theaterObj = it.cinemaId || it.theater;
       const roomObj = it.roomId || it.room;
       return {
         ...it,
-        // Keep original id refs
-        movieId: it.movieId?._id ? it.movieId._id : it.movieId,
-        cinemaId: it.cinemaId?._id ? it.cinemaId._id : it.cinemaId,
-        roomId: it.roomId?._id ? it.roomId._id : it.roomId,
-        // Provide populated objects under commonly used keys
         movie: movieObj,
-        theater: theaterObj,
+        theater: it.cinemaId || it.theater,
         room: roomObj,
-        // Extra aliases for compatibility
-        cinema: theaterObj,
         movieTitle: movieObj?.title || undefined,
-        roomName: roomObj?.name || undefined,
-        theaterName: theaterObj?.name || undefined,
-        cinemaName: theaterObj?.name || undefined
+        roomName: roomObj?.name || undefined
       };
     });
 
