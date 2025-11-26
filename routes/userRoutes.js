@@ -11,7 +11,9 @@ const {
   getUserById,
   updateUser,
   deleteUser,
-  createStaff
+  createStaff,
+  getStaffUsers,
+  lockStaffUser
 } = require('../controllers/userController');
 
 const router = express.Router();
@@ -235,6 +237,16 @@ router.put(
 // @desc    Get all users (Admin)
 // @access  Private/Admin
 router.get('/', protect, admin, getUsers);
+
+// @route   GET /api/users/staff
+// @desc    Get staff users (Admin)
+// @access  Private/Admin
+router.get('/staff', protect, admin, getStaffUsers);
+
+// @route   PUT /api/users/staff/:id/lock
+// @desc    Lock/Unlock a staff user (Admin)
+// @access  Private/Admin
+router.put('/staff/:id/lock', protect, admin, lockStaffUser);
 
 // @route   GET /api/users/:id
 // @desc    Get user by ID (Admin)

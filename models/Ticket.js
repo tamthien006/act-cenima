@@ -54,6 +54,12 @@ const ticketSchema = new mongoose.Schema(
       required: [true, 'Showtime is required'],
       index: true 
     },
+    scheduleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Schedule',
+      required: [true, 'Schedule is required'],
+      index: true
+    },
     movie: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Movie',
@@ -171,7 +177,7 @@ const ticketSchema = new mongoose.Schema(
     payment: {
       method: { 
         type: String, 
-        enum: ['momo', 'zalopay', 'vnpay', 'credit_card', 'cash'],
+        enum: ['momo', 'zalopay', 'vnpay', 'credit_card', 'cash', 'app', 'vietqr', 'manual', 'pos'],
         required: [true, 'Payment method is required']
       },
       transactionId: String,
@@ -181,6 +187,11 @@ const ticketSchema = new mongoose.Schema(
         default: 'pending'
       },
       paidAt: Date,
+      channel: {
+        type: String,
+        enum: ['app', 'pos', 'counter', 'online'],
+        required: false
+      },
       paymentDetails: mongoose.Schema.Types.Mixed
     },
     
@@ -201,6 +212,10 @@ const ticketSchema = new mongoose.Schema(
       sparse: true
     },
     checkInTime: Date,
+    checkedInBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
     notes: {
       type: String,
       maxlength: [500, 'Notes cannot be more than 500 characters']
@@ -216,8 +231,7 @@ const ticketSchema = new mongoose.Schema(
     cancelledAt: Date,
     pendingExpiresAt: { 
       type: Date, 
-      default: () => new Date(Date.now() + 10*60*1000), // 10 minutes
-      index: { expireAfterSeconds: 0 } 
+      default: () => new Date(Date.now() + 10*60*1000) // 10 minutes
     }
   },
   { 
@@ -233,7 +247,8 @@ ticketSchema.index(
   { 
     unique: true, 
     partialFilterExpression: { 
-      status: { $ne: 'cancelled' } 
+      status: { $in: ['pending', 'confirmed'] },
+      scheduleId: { $exists: true }
     },
     message: 'One or more seats are already booked for this show.'
   }
@@ -248,7 +263,7 @@ ticketSchema.pre('save', async function(next) {
   if (this.isNew || this.isModified('seats') || this.isModified('combos') || this.isModified('voucher')) {
     // Calculate subtotal from seats and combos
     const seatTotal = this.seats.reduce((sum, seat) => sum + seat.price, 0);
-    const comboTotal = this.combos.reduce((sum, combo) => sum + (combo.price * combo.qty), 0);
+    const comboTotal = this.combos.reduce((sum, combo) => sum + (combo.price * (combo.quantity || 0)), 0);
     this.subtotal = seatTotal + comboTotal;
     
     // Apply voucher discount if applicable
@@ -481,7 +496,7 @@ ticketSchema.statics.getUserBookingSummary = async function(userId) {
 ticketSchema.index({ user: 1, status: 1 });
 ticketSchema.index({ showtime: 1, status: 1 });
 ticketSchema.index({ 'payment.transactionId': 1 }, { unique: true, sparse: true });
-ticketSchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 }); // Auto-delete after 30 days
+// Removed TTL on createdAt to avoid auto-deleting tickets
 
 // Add text index for search
 ticketSchema.index(
@@ -498,4 +513,4 @@ ticketSchema.index(
   }
 );
 
-module.exports = mongoose.model('Tickets', ticketSchema);
+module.exports = mongoose.model('Ticket', ticketSchema);

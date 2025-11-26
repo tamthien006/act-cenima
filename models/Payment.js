@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const Ticket = require("./Ticket");
 const paymentSchema = new mongoose.Schema(
   {
     ticketId: { 
@@ -21,7 +21,7 @@ const paymentSchema = new mongoose.Schema(
     },
     method: { 
       type: String, 
-      enum: ['momo', 'zalopay', 'card', 'cash'], 
+      enum: ['momo', 'zalopay', 'card', 'cash', 'app', 'vietqr', 'manual', 'pos'], 
       required: true 
     },
     transactionId: {
@@ -31,7 +31,7 @@ const paymentSchema = new mongoose.Schema(
     },
     status: { 
       type: String, 
-      enum: ['pending', 'success', 'failed', 'refunded'], 
+      enum: ['pending', 'success', 'completed', 'failed', 'refunded'], 
       default: 'pending',
       index: true 
     },
@@ -94,17 +94,19 @@ paymentSchema.pre('save', async function(next) {
         throw new Error('Ticket not found');
       }
       
-      // Only update if status is different
-      if (ticket.paymentStatus !== this.status) {
-        ticket.paymentStatus = this.status;
+      // Map payment status to ticket.paymentStatus using app semantics
+      const mapped = (this.status === 'success') ? 'completed' : this.status;
+      // Only update if different
+      if (ticket.paymentStatus !== mapped) {
+        ticket.paymentStatus = mapped;
         
-        // If payment is successful, update ticket status to paid
-        if (this.status === 'success' && ticket.status === 'pending') {
-          ticket.status = 'paid';
+        // If payment is successful/completed, update ticket status to confirmed
+        if ((this.status === 'success' || this.status === 'completed') && ticket.status === 'pending') {
+          ticket.status = 'confirmed';
         }
         
         // If payment is refunded, update ticket status to refunded
-        if (this.status === 'refunded' && ticket.status === 'paid') {
+        if (this.status === 'refunded') {
           ticket.status = 'refunded';
         }
         

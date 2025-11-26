@@ -3,74 +3,65 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 
-// @desc    Register a new user
-// @route   POST /api/users/register
-// @access  Public
-exports.register = async (req, res, next) => {
+ 
+
+// @desc    Get all staff users (Admin)
+// @route   GET /api/v1/auth/staff
+// @access  Private/Admin
+exports.getStaffUsers = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        success: false,
-        errors: errors.array() 
-      });
-    }
-
-    const { name, email, password, phone } = req.body;
-
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    
-    if (user) {
-      return res.status(400).json({
-        success: false,
-        message: 'User already exists'
-      });
-    }
-
-    // Create user
-    user = new User({
-      name,
-      email,
-      password,
-      phone
+    const users = await User.find({ role: 'staff' }).select('-password');
+    return res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users
     });
-
-    await user.save();
-
-    // Create token
-    const payload = {
-      user: {
-        id: user.id,
-        role: user.role
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' },
-      (err, token) => {
-        if (err) throw err;
-        res.status(201).json({
-          success: true,
-          token,
-          user: {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            phone: user.phone
-          }
-        });
-      }
-    );
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });
+  }
+};
+
+// @desc    Lock/Unlock a staff user (Admin)
+// @route   PUT /api/users/staff/:id/lock
+// @access  Private/Admin
+exports.lockStaffUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.role !== 'staff') {
+      return res.status(400).json({ success: false, message: 'Only staff users can be locked/unlocked' });
+    }
+
+    if (typeof req.body?.isActive === 'boolean') {
+      user.isActive = req.body.isActive;
+    } else {
+      user.isActive = !Boolean(user.isActive);
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        isActive: user.isActive
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -106,6 +97,14 @@ exports.login = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
+      });
+    }
+
+    // Block login if user is locked/inactive
+    if (user.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is locked. Please contact administrator.'
       });
     }
 
@@ -318,9 +317,9 @@ exports.getUserById = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
   try {
     const { name, email, role, phone } = req.body;
-    
+
     let user = await User.findById(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -328,7 +327,6 @@ exports.updateUser = async (req, res, next) => {
       });
     }
 
-    // Update fields
     if (name) user.name = name;
     if (email) user.email = email;
     if (role) user.role = role;
@@ -336,13 +334,13 @@ exports.updateUser = async (req, res, next) => {
 
     await user.save();
 
-    res.json({
+    return res.json({
       success: true,
       data: user
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });
@@ -389,6 +387,58 @@ exports.deleteUser = async (req, res, next) => {
       success: false,
       message: 'Server error'
     });
+  }
+};
+
+// @desc    Register user
+// @route   POST /api/register
+// @access  Public
+exports.register = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const { name, email, password, phone } = req.body;
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ success: false, message: 'User already exists' });
+    }
+
+    // Create user
+    user = new User({ name, email, password, phone });
+    await user.save();
+
+    // Create token
+    const payload = { user: { id: user.id, role: user.role } };
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' },
+      (err, token) => {
+        if (err) throw err;
+        res.status(201).json({
+          success: true,
+          token,
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone
+          }
+        });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 

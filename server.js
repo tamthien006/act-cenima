@@ -82,6 +82,7 @@ app.use((req, res, next) => {
 
 // API Routes
 app.use('/api/v1/auth', require('./routes/userRoutes'));
+app.use('/api/v1/users', require('./routes/paymentProfileRoutes'));
 app.use('/api/v1/movies', require('./routes/movieRoutes'));
 app.use('/api/v1/cinemas', require('./routes/cinemaRoutes'));
 app.use('/api/v1/rooms', require('./routes/roomRoutes'));
@@ -90,9 +91,11 @@ app.use('/api/v1/tickets', require('./routes/ticketRoutes'));
 app.use('/api/v1/payments', require('./routes/paymentRoutes'));
 app.use('/api/v1/vouchers', require('./routes/voucherRoutes'));
 app.use('/api/v1/promotions', require('./routes/promotionRoutes'));
+app.use('/api/v1/membership', require('./routes/membershipRoutes'));
 app.use('/api/v1/combos', require('./routes/comboRoutes'));
 app.use('/api/v1/reviews', require('./routes/reviewRoutes'));
 app.use('/api/v1/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/v1/staff', require('./routes/staffRoutes'));
 
 // Health check endpoint
 app.get('/api/v1/health', (req, res) => {

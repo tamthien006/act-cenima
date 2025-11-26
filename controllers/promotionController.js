@@ -1,4 +1,5 @@
 const Promotion = require('../models/Promotion');
+const Ticket = require('../models/Ticket');
 const { validationResult } = require('express-validator');
 
 // @desc    Get active promotions
@@ -55,6 +56,7 @@ data: promotions
 next(err);
 }
 };
+
 exports.getPromotionById = async (req, res, next) => {
 try {
 const promotion = await Promotion.findById(req.params.id);
@@ -72,6 +74,7 @@ data: promotion
 next(err);
 }
 };
+
 exports.createPromotion = async (req, res, next) => {
 try {
 const errors = validationResult(req);
@@ -90,6 +93,7 @@ data: promotion
 next(err);
 }
 };
+
 exports.updatePromotion = async (req, res, next) => {
 try {
 const errors = validationResult(req);
@@ -124,6 +128,7 @@ data: promotion
 next(err);
 }
 };
+
 exports.deletePromotion = async (req, res, next) => {
 try {
 const promotion = await Promotion.findById(req.params.id);
@@ -149,6 +154,78 @@ data: {}
 next(err);
 }
 };
+
+exports.getPromotionStats = async (req, res, next) => {
+  try {
+    const promo = await Promotion.findById(req.params.id).lean();
+    if (!promo) {
+      return res.status(404).json({ success: false, message: 'Promotion not found' });
+    }
+    // Tickets đã xác nhận có dùng voucher code này
+    const tickets = await Ticket.find({
+      status: { $in: ['confirmed'] },
+      'voucher.code': promo.code
+    })
+      .populate('user', 'name email')
+      .select('user totalAmount discount createdAt')
+      .lean();
+
+    const totalUses = tickets.length;
+    const totalDiscount = tickets.reduce((sum, t) => sum + (Number(t.discount || 0) || 0), 0);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        promotion: { id: promo._id, code: promo.code, name: promo.name },
+        totalUses,
+        totalDiscount,
+        tickets
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getPromotionOverview = async (req, res, next) => {
+  try {
+    const { from, to, limit = 5 } = req.query;
+    const match = {
+      status: { $in: ['confirmed'] },
+      'voucher.code': { $exists: true, $ne: null }
+    };
+    if (from || to) {
+      match.createdAt = {};
+      if (from) { const s = new Date(from); s.setHours(0,0,0,0); match.createdAt.$gte = s; }
+      if (to) { const e = new Date(to); e.setHours(23,59,59,999); match.createdAt.$lte = e; }
+    }
+
+    const pipeline = [
+      { $match: match },
+      { $group: {
+          _id: '$voucher.code',
+          uses: { $sum: 1 },
+          totalDiscount: { $sum: { $ifNull: ['$discount', 0] } },
+          totalAmount: { $sum: { $ifNull: ['$totalAmount', 0] } }
+        }
+      },
+      { $sort: { uses: -1 } },
+      { $limit: Math.max(1, Math.min(50, parseInt(limit) || 5)) }
+    ];
+
+    const rows = await Ticket.aggregate(pipeline);
+    // attach promotion names
+    const codes = rows.map(r => r._id);
+    const promos = await Promotion.find({ code: { $in: codes } }).select('code name').lean();
+    const nameMap = new Map(promos.map(p => [p.code, p.name]));
+    const items = rows.map(r => ({ code: r._id, name: nameMap.get(r._id) || r._id, uses: r.uses, totalDiscount: r.totalDiscount, totalAmount: r.totalAmount }));
+
+    return res.status(200).json({ success: true, data: { items } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.validatePromotion = async (req, res, next) => {
 try {
 const { code } = req.params;

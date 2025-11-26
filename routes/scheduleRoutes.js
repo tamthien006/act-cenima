@@ -9,7 +9,8 @@ const {
   deleteSchedule,
   getSchedulesByMovie,
   getSchedulesByTheater,
-  getAvailableTimeSlots
+  getAvailableTimeSlots,
+  getScheduleSeats
 } = require('../controllers/scheduleController');
 
 const router = express.Router();
@@ -29,12 +30,13 @@ const router = express.Router();
 router.get('/', [
   check('movieId', 'ID phim không hợp lệ').optional().isMongoId(),
   check('theaterId', 'ID rạp không hợp lệ').optional().isMongoId(),
+  check('cinemaId', 'ID rạp không hợp lệ').optional().isMongoId(),
   check('roomId', 'ID phòng chiếu không hợp lệ').optional().isMongoId(),
   check('date', 'Định dạng ngày không hợp lệ (YYYY-MM-DD)').optional().isISO8601(),
   check('startTime', 'Định dạng giờ bắt đầu không hợp lệ (HH:MM)').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
   check('endTime', 'Định dạng giờ kết thúc không hợp lệ (HH:MM)').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
   check('page', 'Số trang phải là số dương').optional().isInt({ min: 1 }),
-  check('limit', 'Giới hạn kết quả phải từ 1 đến 50').optional().isInt({ min: 1, max: 50 })
+  check('limit', 'Giới hạn kết quả phải từ 1 đến 1000').optional().isInt({ min: 1, max: 1000 })
 ], getSchedules);
 
 // @route   GET /api/schedules/movie/:movieId
@@ -88,6 +90,9 @@ router.get('/available-times', [
 // - id: ID của lịch chiếu (định dạng MongoDB ID)
 router.get('/:id', getScheduleById);
 
+// Seat map for a schedule
+router.get('/:id/seats', getScheduleSeats);
+
 // @route   POST /api/schedules
 // @desc    Tạo mới một lịch chiếu (Quản trị viên/Nhân viên)
 // @access  Riêng tư/Nhân viên
@@ -108,12 +113,44 @@ router.post(
     protect,
     staff,
     [
-      check('movieId', 'Vui lòng chọn phim').isMongoId(),
-      check('theaterId', 'Vui lòng chọn rạp').isMongoId(),
-      check('roomId', 'Vui lòng chọn phòng chiếu').isMongoId(),
-      check('startTime', 'Vui lòng nhập thời gian bắt đầu (định dạng ISO 8601)').isISO8601(),
-      check('endTime', 'Vui lòng nhập thời gian kết thúc (định dạng ISO 8601)').isISO8601(),
-      check('price', 'Vui lòng nhập giá vé hợp lệ (số dương)').isFloat({ min: 0 }),
+      // movieId or movie
+      check(['movieId', 'movie']).custom((value, { req }) => {
+        const v = req.body.movieId || req.body.movie;
+        if (!v) throw new Error('Vui lòng chọn phim');
+        if (!/^[a-f\d]{24}$/i.test(v)) throw new Error('ID phim không hợp lệ');
+        return true;
+      }),
+      // theaterId or cinemaId or theater
+      check(['theaterId', 'cinemaId', 'theater']).custom((value, { req }) => {
+        const v = req.body.theaterId || req.body.cinemaId || req.body.theater;
+        if (!v) throw new Error('Vui lòng chọn rạp');
+        if (!/^[a-f\d]{24}$/i.test(v)) throw new Error('ID rạp không hợp lệ');
+        return true;
+      }),
+      // roomId or room
+      check(['roomId', 'room']).custom((value, { req }) => {
+        const v = req.body.roomId || req.body.room;
+        if (!v) throw new Error('Vui lòng chọn phòng chiếu');
+        if (!/^[a-f\d]{24}$/i.test(v)) throw new Error('ID phòng chiếu không hợp lệ');
+        return true;
+      }),
+      check('startTime').custom((v) => {
+        const isIso = typeof v === 'string' && !isNaN(Date.parse(v));
+        const isEpoch = typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v));
+        if (!isIso && !isEpoch) {
+          throw new Error('Vui lòng nhập thời gian bắt đầu (ISO 8601 hoặc epoch milliseconds)');
+        }
+        return true;
+      }),
+      check('endTime').optional().custom((v) => {
+        const isIso = typeof v === 'string' && !isNaN(Date.parse(v));
+        const isEpoch = typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v));
+        if (!isIso && !isEpoch) {
+          throw new Error('Thời gian kết thúc không hợp lệ (ISO 8601 hoặc epoch milliseconds)');
+        }
+        return true;
+      }),
+      check('price', 'Giá vé phải là số dương').optional().isFloat({ min: 0 }),
       check('is3d', 'Giá trị is3D phải là true hoặc false').optional().isBoolean(),
       check('hasSubtitles', 'Giá trị hasSubtitles phải là true hoặc false').optional().isBoolean(),
       check('isDubbed', 'Giá trị isDubbed phải là true hoặc false').optional().isBoolean()
@@ -142,8 +179,22 @@ router.put(
     protect,
     staff,
     [
-      check('startTime', 'Định dạng thời gian bắt đầu không hợp lệ (ISO 8601)').optional().isISO8601(),
-      check('endTime', 'Định dạng thời gian kết thúc không hợp lệ (ISO 8601)').optional().isISO8601(),
+      check('startTime').optional().custom((v) => {
+        const isIso = typeof v === 'string' && !isNaN(Date.parse(v));
+        const isEpoch = typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v));
+        if (!isIso && !isEpoch) {
+          throw new Error('Định dạng thời gian bắt đầu không hợp lệ (ISO 8601 hoặc epoch milliseconds)');
+        }
+        return true;
+      }),
+      check('endTime').optional().custom((v) => {
+        const isIso = typeof v === 'string' && !isNaN(Date.parse(v));
+        const isEpoch = typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v));
+        if (!isIso && !isEpoch) {
+          throw new Error('Định dạng thời gian kết thúc không hợp lệ (ISO 8601 hoặc epoch milliseconds)');
+        }
+        return true;
+      }),
       check('price', 'Giá vé phải là số dương').optional().isFloat({ min: 0 }),
       check('is3d', 'Giá trị is3D phải là true hoặc false').optional().isBoolean(),
       check('hasSubtitles', 'Giá trị hasSubtitles phải là true hoặc false').optional().isBoolean(),
