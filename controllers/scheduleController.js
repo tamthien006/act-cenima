@@ -1,6 +1,7 @@
 const Schedule = require('../models/Schedule');
 const Movie = require('../models/Movie');
 const Theater = require('../models/Theater');
+const Cinema = require('../models/Cinema');
 const Room = require('../models/Room');
 const { validationResult } = require('express-validator');
 const Ticket = require('../models/Ticket');
@@ -16,70 +17,117 @@ exports.createSchedule = async (req, res, next) => {
 
   try {
     const {
-      movieId,
-      theaterId,
-      roomId,
-      startTime,
-      endTime,
+      movieId: movieIdRaw,
+      theaterId: theaterIdRaw,
+      cinemaId: cinemaIdRaw,
+      roomId: roomIdRaw,
+      movie: movieRaw,
+      theater: theaterRaw,
+      room: roomRaw,
+      startTime: startTimeRaw,
+      endTime: endTimeRaw,
       price,
+      priceTable,
       is3d = false,
       hasSubtitles = false,
       isDubbed = false
     } = req.body;
 
+    // Normalize ids and times from possible aliases
+    const movieId = movieIdRaw || movieRaw;
+    const theaterId = theaterIdRaw || cinemaIdRaw || theaterRaw;
+    const roomId = roomIdRaw || roomRaw;
+    const startTime = new Date(startTimeRaw);
+    const endTimeInput = endTimeRaw ? new Date(endTimeRaw) : undefined;
+
     // Check if movie exists
     const movie = await Movie.findById(movieId);
     if (!movie) {
-      return res.status(404).json({ message: 'Movie not found' });
+      return res.status(404).json({ message: 'Không tìm thấy phim' });
     }
 
     // Check if theater exists
-    const theater = await Theater.findById(theaterId);
-    if (!theater) {
-      return res.status(404).json({ message: 'Theater not found' });
+    // Accept both Theater and Cinema IDs for backward compatibility
+    let theater = null;
+    let cinema = null;
+    if (theaterId) {
+      theater = await Theater.findById(theaterId);
+      if (!theater) {
+        cinema = await Cinema.findById(theaterId);
+      }
+    }
+    if (!theater && !cinema) {
+      return res.status(404).json({ message: 'Không tìm thấy rạp' });
     }
 
     // Check if room exists and belongs to theater
-    const room = await Room.findOne({ _id: roomId, theater: theaterId });
-    if (!room) {
-      return res.status(404).json({ message: 'Room not found in this theater' });
+    let room = null;
+    if (theater) {
+      room = await Room.findOne({ _id: roomId, theater: theater._id });
+      if (!room) {
+        return res.status(404).json({ message: 'Không tìm thấy phòng chiếu thuộc rạp này' });
+      }
+    } else {
+      // If only Cinema is provided, validate room existence by ID (no theater linkage)
+      room = await Room.findById(roomId);
+      if (!room) {
+        return res.status(404).json({ message: 'Không tìm thấy phòng chiếu' });
+      }
     }
 
     // Check for schedule conflicts
+    // Determine end time for conflict check (if not provided, compute from movie duration + 30')
+    const computedEnd = endTimeInput || new Date(startTime.getTime() + (movie.duration + 30) * 60000);
+
     const conflict = await Schedule.findOne({
-      room: roomId,
+      roomId: roomId,
       $or: [
-        { startTime: { $lt: new Date(endTime) }, endTime: { $gt: new Date(startTime) } }
+        { startTime: { $lt: new Date(computedEnd) }, endTime: { $gt: new Date(startTime) } }
       ]
     });
 
     if (conflict) {
       return res.status(400).json({ 
-        message: 'Schedule conflict: Another show is already scheduled in this room during the requested time' 
+        message: 'Trùng lịch: Phòng chiếu đã có suất chiếu trong khoảng thời gian yêu cầu' 
       });
     }
 
-    // Create new schedule
+    // Create new schedule (align to schema fields)
+    // Build priceTable to satisfy schema requirements
+    const finalPriceTable = priceTable && typeof priceTable === 'object'
+      ? {
+          standard: Number(priceTable.standard ?? price ?? 0),
+          vip: Number(priceTable.vip ?? price ?? 0),
+          earlyBirdDiscount: Number(priceTable.earlyBirdDiscount ?? 0),
+          earlyBirdEndTime: priceTable.earlyBirdEndTime ? new Date(priceTable.earlyBirdEndTime) : undefined
+        }
+      : {
+          standard: Number(price ?? 0),
+          vip: Number(price ?? 0)
+        };
+
     const schedule = new Schedule({
-      movie: movieId,
-      theater: theaterId,
-      room: roomId,
+      movieId: movieId,
+      // Prefer explicit cinemaId if provided; else if input ID was a Cinema, use it; else fallback to provided theaterId
+      cinemaId: cinemaIdRaw || (cinema ? cinema._id : undefined) || theaterId,
+      roomId: roomId,
       startTime,
-      endTime,
-      price,
+      endTime: endTimeInput, // schema pre('save') will compute if undefined
+      priceTable: finalPriceTable,
       is3d,
       hasSubtitles,
       isDubbed,
-      createdBy: req.user.id
+      createdBy: req.user?.id
     });
 
     await schedule.save();
 
     // Populate references for the response
-    await schedule.populate('movie', 'title duration posterUrl')
-                 .populate('theater', 'name location')
-                 .populate('room', 'name capacity')
-                 .execPopulate();
+    await schedule.populate([
+      { path: 'movieId', select: 'title duration posterUrl' },
+      { path: 'cinemaId', select: 'name address location' },
+      { path: 'roomId', select: 'name capacity' }
+    ]);
 
     res.status(201).json({
       success: true,
@@ -222,7 +270,9 @@ exports.getSchedules = async (req, res, next) => {
       totalPages,
       currentPage: pageNum,
       hasMore,
-      data: schedules
+      data: schedules,
+      items: schedules,
+      results: schedules
     });
   } catch (err) {
     console.error(err);
@@ -305,11 +355,11 @@ exports.updateSchedule = async (req, res, next) => {
     if (req.body.startTime || req.body.endTime || req.body.roomId) {
       const start = req.body.startTime ? new Date(req.body.startTime) : schedule.startTime;
       const end = req.body.endTime ? new Date(req.body.endTime) : schedule.endTime;
-      const room = req.body.roomId || schedule.room;
+      const room = req.body.roomId || schedule.roomId;
 
       const conflict = await Schedule.findOne({
         _id: { $ne: schedule._id },
-        room,
+        roomId: room,
         $or: [
           { startTime: { $lt: end }, endTime: { $gt: start } }
         ]
@@ -322,26 +372,61 @@ exports.updateSchedule = async (req, res, next) => {
       }
     }
 
-    // Update fields
+    // Build updates
     const updates = {};
     const allowedUpdates = [
-      'startTime', 'endTime', 'price', 'is3d', 'hasSubtitles', 'isDubbed', 'isActive'
+      'startTime', 'endTime', 'is3d', 'hasSubtitles', 'isDubbed', 'isActive'
     ];
 
-    allowedUpdates.forEach(update => {
-      if (req.body[update] !== undefined) {
-        updates[update] = req.body[update];
-      }
+    allowedUpdates.forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
+
+    // Map pricing: support both price and priceTable from frontend
+    const hasPriceTable = req.body.priceTable && typeof req.body.priceTable === 'object';
+    if (hasPriceTable) {
+      if (req.body.priceTable.standard !== undefined) {
+        updates['priceTable.standard'] = Number(req.body.priceTable.standard);
+      }
+      if (req.body.priceTable.vip !== undefined) {
+        updates['priceTable.vip'] = Number(req.body.priceTable.vip);
+      }
+      if (req.body.priceTable.earlyBirdDiscount !== undefined) {
+        updates['priceTable.earlyBirdDiscount'] = Number(req.body.priceTable.earlyBirdDiscount);
+      }
+      if (req.body.priceTable.earlyBirdEndTime !== undefined) {
+        updates['priceTable.earlyBirdEndTime'] = req.body.priceTable.earlyBirdEndTime
+          ? new Date(req.body.priceTable.earlyBirdEndTime)
+          : undefined;
+      }
+    } else if (req.body.price !== undefined) {
+      // Backward compat: single price -> both standard & vip
+      const p = Number(req.body.price);
+      updates['priceTable.standard'] = p;
+      updates['priceTable.vip'] = p;
+    }
+
+    // If startTime changes and endTime not provided, compute new endTime
+    if (req.body.startTime && !req.body.endTime) {
+      try {
+        const movie = await Movie.findById(schedule.movieId);
+        if (movie) {
+          const start = new Date(req.body.startTime);
+          updates.endTime = new Date(start.getTime() + (movie.duration + 30) * 60000);
+        }
+      } catch (e) {
+        // ignore compute error; validators will handle if needed
+      }
+    }
 
     schedule = await Schedule.findByIdAndUpdate(
       req.params.id,
       { $set: updates },
       { new: true, runValidators: true }
     )
-      .populate('movie', 'title duration posterUrl')
-      .populate('theater', 'name location')
-      .populate('room', 'name capacity');
+      .populate('movieId', 'title duration posterUrl')
+      .populate('cinemaId', 'name address location')
+      .populate('roomId', 'name capacity');
 
     res.status(200).json({
       success: true,
@@ -411,7 +496,7 @@ exports.getSchedulesByMovie = async (req, res, next) => {
     const now = new Date();
 
     const query = { 
-      movie: movieId,
+      movieId: movieId,
       startTime: { $gte: now } // Only future schedules
     };
 
@@ -425,50 +510,40 @@ exports.getSchedulesByMovie = async (req, res, next) => {
     }
 
     if (theaterId) {
-      query.theater = theaterId;
+      query.cinemaId = theaterId;
     }
 
     const schedules = await Schedule.find(query)
-      .populate('theater', 'name location')
-      .populate('room', 'name')
-      .sort({ startTime: 1 });
+      .setOptions({ strictPopulate: false })
+      .populate('cinemaId', 'name address')
+      .populate('roomId', 'name')
+      .sort({ startTime: 1 })
+      .lean();
 
-    // Group by date and theater
-    const result = schedules.reduce((acc, schedule) => {
-      const dateKey = schedule.startTime.toISOString().split('T')[0];
-      const theaterId = schedule.theater._id.toString();
-      
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
+    // Group by date and theater (cinema)
+    const result = schedules.reduce((acc, s) => {
+      const dateKey = s.startTime.toISOString().split('T')[0];
+      const theater = s.cinemaId; // populated cinema
+      const theaterId = theater?._id?.toString?.() || String(theater);
+
+      if (!acc[dateKey]) acc[dateKey] = [];
+
+      let group = acc[dateKey].find(t => (t.theater?._id?.toString?.() || String(t.theater)) === theaterId);
+      if (!group) {
+        group = { theater, times: [] };
+        acc[dateKey].push(group);
       }
-      
-      const theaterIndex = acc[dateKey].findIndex(t => t.theater._id.toString() === theaterId);
-      
-      if (theaterIndex === -1) {
-        acc[dateKey].push({
-          theater: schedule.theater,
-          times: [{
-            _id: schedule._id,
-            time: schedule.startTime,
-            room: schedule.room,
-            price: schedule.price,
-            is3d: schedule.is3d,
-            hasSubtitles: schedule.hasSubtitles,
-            isDubbed: schedule.isDubbed
-          }]
-        });
-      } else {
-        acc[dateKey][theaterIndex].times.push({
-          _id: schedule._id,
-          time: schedule.startTime,
-          room: schedule.room,
-          price: schedule.price,
-          is3d: schedule.is3d,
-          hasSubtitles: schedule.hasSubtitles,
-          isDubbed: schedule.isDubbed
-        });
-      }
-      
+
+      group.times.push({
+        _id: s._id,
+        time: s.startTime,
+        room: s.roomId, // populated room
+        price: s.priceTable?.standard ?? s.price ?? 0,
+        is3d: s.is3d,
+        hasSubtitles: s.hasSubtitles,
+        isDubbed: s.isDubbed
+      });
+
       return acc;
     }, {});
 
@@ -558,8 +633,14 @@ exports.getAvailableTimeSlots = async (req, res, next) => {
       });
     }
 
-    // Convert date string to Date object
-    const selectedDate = new Date(date);
+    // Convert date string to local Date object (avoid UTC shift)
+    let selectedDate;
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const [y, m, d] = date.split('-').map(Number);
+      selectedDate = new Date(y, m - 1, d);
+    } else {
+      selectedDate = new Date(date);
+    }
     const startOfDay = new Date(selectedDate);
     const endOfDay = new Date(selectedDate);
     startOfDay.setHours(0, 0, 0, 0);

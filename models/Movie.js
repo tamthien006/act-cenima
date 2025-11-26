@@ -104,7 +104,7 @@ movieSchema.virtual('showtimes', {
 });
 
 // Indexes for better query performance
-movieSchema.index({ title: 'text', director: 'text', cast: 'text' });
+movieSchema.index({ title: 'text', director: 'text', cast: 'text' }, { default_language: 'none', language_override: 'none' });
 movieSchema.index({ releaseDate: 1 });
 movieSchema.index({ endDate: 1 });
 movieSchema.index({ status: 1 });
@@ -136,7 +136,7 @@ movieSchema.methods.getUpcomingShowtimes = async function(days = 7) {
 movieSchema.statics.getAverageRating = async function(movieId) {
   const obj = await this.aggregate([
     {
-      $match: { _id: mongoose.Types.ObjectId(movieId) }
+      $match: { _id: new mongoose.Types.ObjectId(movieId) }
     },
     {
       $lookup: {

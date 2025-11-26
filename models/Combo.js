@@ -119,13 +119,13 @@ const comboSchema = new mongoose.Schema(
       type: Number,
       min: 0
     },
-    priceTiers: [comboPriceTierSchema],
+    priceTiers: { type: [comboPriceTierSchema], default: [] },
     category: {
       type: String,
       enum: ['combo', 'snack', 'beverage', 'dessert', 'meal'],
       default: 'combo'
     },
-    images: [comboImageSchema],
+    images: { type: [comboImageSchema], default: [] },
     isActive: {
       type: Boolean,
       default: true,
@@ -139,7 +139,7 @@ const comboSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Cinema'
     }],
-    availability: [comboAvailabilitySchema],
+    availability: { type: [comboAvailabilitySchema], default: [] },
     preparationTime: {
       type: Number, // in minutes
       min: 0
@@ -172,8 +172,9 @@ const comboSchema = new mongoose.Schema(
 
 // Virtual for primary image
 comboSchema.virtual('primaryImage').get(function() {
-  const primary = this.images.find(img => img.isPrimary);
-  return primary ? primary.url : (this.images.length > 0 ? this.images[0].url : null);
+  const imgs = Array.isArray(this.images) ? this.images : [];
+  const primary = imgs.find(img => img && img.isPrimary);
+  return primary ? primary.url : (imgs.length > 0 ? imgs[0].url : null);
 });
 
 // Virtual for display price (considers discounts)

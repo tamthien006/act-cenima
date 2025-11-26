@@ -9,8 +9,11 @@ const {
   updatePromotion,
   deletePromotion,
   validatePromotion,
-  getActivePromotions
+  getActivePromotions,
+  getPromotionStats,
+  getPromotionOverview
 } = require('../controllers/promotionController');
+
 const router = express.Router();
 
 // Public routes
@@ -87,5 +90,7 @@ router.put(
   ],
   updatePromotion
 );
+
 router.delete('/:id', deletePromotion);
+
 module.exports = router;

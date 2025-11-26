@@ -14,7 +14,7 @@ exports.searchMovies = async (req, res, next) => {
     if (!q) {
       return res.status(400).json({
         success: false,
-        message: 'Search query is required'
+        message: 'Vui lòng nhập từ khóa tìm kiếm'
       });
     }
 
@@ -50,10 +50,10 @@ exports.searchMovies = async (req, res, next) => {
       data: movies
     });
   } catch (err) {
-    console.error('Search error:', err);
+    console.error('Lỗi tìm kiếm:', err);
     res.status(500).json({
       success: false,
-      message: 'Server error during search'
+      message: 'Lỗi máy chủ khi tìm kiếm'
     });
   }
 };
@@ -133,7 +133,7 @@ exports.getMovies = async (req, res, next) => {
     console.error(err.message);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Lỗi máy chủ'
     });
   }
 };
@@ -148,7 +148,7 @@ exports.getMovieById = async (req, res, next) => {
     if (!movie) {
       return res.status(404).json({
         success: false,
-        message: 'Movie not found'
+        message: 'Không tìm thấy phim'
       });
     }
     
@@ -174,12 +174,12 @@ exports.getMovieById = async (req, res, next) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
-        message: 'Movie not found'
+        message: 'Không tìm thấy phim'
       });
     }
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Lỗi máy chủ'
     });
   }
 };
@@ -199,29 +199,39 @@ exports.createMovie = async (req, res, next) => {
     
     const {
       title,
-      genre,
+      genres,
       duration,
       description,
       cast,
       director,
-      trailer,
-      poster,
+      trailerUrl,
+      posterUrl,
       status,
-      releaseDate
+      releaseDate,
+      endDate,
+      ageRating,
+      language,
+      isFeatured,
+      rating
     } = req.body;
     
     // Create movie
     const movie = new Movie({
       title,
-      genre: genre || [],
-      duration: parseInt(duration) || 0,
-      description: description || '',
-      cast: cast || [],
-      director: director || '',
-      trailer: trailer || '',
-      poster: poster || 'default-movie.jpg',
-      status: status || 'coming',
-      releaseDate: releaseDate || new Date()
+      genres: Array.isArray(genres) ? genres : (genres ? [genres] : []),
+      duration: duration !== undefined ? parseInt(duration) : undefined,
+      description,
+      cast: Array.isArray(cast) ? cast : (cast ? [cast] : []),
+      director,
+      trailerUrl,
+      posterUrl,
+      status: status || 'upcoming',
+      releaseDate,
+      endDate,
+      ageRating,
+      language,
+      isFeatured,
+      rating
     });
     
     await movie.save();
@@ -234,7 +244,7 @@ exports.createMovie = async (req, res, next) => {
     console.error(err.message);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Lỗi máy chủ'
     });
   }
 };
@@ -254,15 +264,20 @@ exports.updateMovie = async (req, res, next) => {
     
     const {
       title,
-      genre,
+      genres,
       duration,
       description,
       cast,
       director,
-      trailer,
-      poster,
+      trailerUrl,
+      posterUrl,
       status,
-      releaseDate
+      releaseDate,
+      endDate,
+      ageRating,
+      language,
+      isFeatured,
+      rating
     } = req.body;
     
     let movie = await Movie.findById(req.params.id);
@@ -270,21 +285,26 @@ exports.updateMovie = async (req, res, next) => {
     if (!movie) {
       return res.status(404).json({
         success: false,
-        message: 'Movie not found'
+        message: 'Không tìm thấy phim'
       });
     }
     
     // Update fields
-    if (title) movie.title = title;
-    if (genre) movie.genre = Array.isArray(genre) ? genre : [genre];
-    if (duration) movie.duration = parseInt(duration);
-    if (description) movie.description = description;
-    if (cast) movie.cast = Array.isArray(cast) ? cast : [cast];
-    if (director) movie.director = director;
-    if (trailer) movie.trailer = trailer;
-    if (poster) movie.poster = poster;
-    if (status) movie.status = status;
-    if (releaseDate) movie.releaseDate = releaseDate;
+    if (title !== undefined) movie.title = title;
+    if (genres !== undefined) movie.genres = Array.isArray(genres) ? genres : [genres];
+    if (duration !== undefined) movie.duration = parseInt(duration);
+    if (description !== undefined) movie.description = description;
+    if (cast !== undefined) movie.cast = Array.isArray(cast) ? cast : [cast];
+    if (director !== undefined) movie.director = director;
+    if (trailerUrl !== undefined) movie.trailerUrl = trailerUrl;
+    if (posterUrl !== undefined) movie.posterUrl = posterUrl;
+    if (status !== undefined) movie.status = status;
+    if (releaseDate !== undefined) movie.releaseDate = releaseDate;
+    if (endDate !== undefined) movie.endDate = endDate;
+    if (ageRating !== undefined) movie.ageRating = ageRating;
+    if (language !== undefined) movie.language = language;
+    if (isFeatured !== undefined) movie.isFeatured = isFeatured;
+    if (rating !== undefined) movie.rating = rating;
     
     await movie.save();
     
@@ -297,12 +317,12 @@ exports.updateMovie = async (req, res, next) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
-        message: 'Movie not found'
+        message: 'Không tìm thấy phim'
       });
     }
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Lỗi máy chủ'
     });
   }
 };
@@ -317,7 +337,7 @@ exports.deleteMovie = async (req, res, next) => {
     if (!movie) {
       return res.status(404).json({
         success: false,
-        message: 'Movie not found'
+        message: 'Không tìm thấy phim'
       });
     }
     
@@ -328,7 +348,7 @@ exports.deleteMovie = async (req, res, next) => {
     
     res.status(200).json({
       success: true,
-      message: 'Movie removed',
+      message: 'Đã xóa phim',
       data: {}
     });
   } catch (err) {
@@ -336,12 +356,12 @@ exports.deleteMovie = async (req, res, next) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
-        message: 'Movie not found'
+        message: 'Không tìm thấy phim'
       });
     }
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Lỗi máy chủ'
     });
   }
 };
@@ -369,7 +389,7 @@ exports.getFeaturedMovies = async (req, res, next) => {
     console.error(err.message);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Lỗi máy chủ'
     });
   }
 };

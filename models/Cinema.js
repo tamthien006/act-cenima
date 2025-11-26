@@ -83,7 +83,7 @@ const cinemaSchema = new mongoose.Schema(
 // Cascade delete rooms when a cinema is deleted
 cinemaSchema.pre('remove', async function(next) {
   console.log(`Rooms being removed from cinema ${this._id}`);
-  await this.model('Room').deleteMany({ cinemaId: this._id });
+  await this.model('Room').deleteMany({ theater: this._id });
   next();
 });
 
@@ -91,7 +91,7 @@ cinemaSchema.pre('remove', async function(next) {
 cinemaSchema.virtual('rooms', {
   ref: 'Room',
   localField: '_id',
-  foreignField: 'cinemaId',
+  foreignField: 'theater',
   justOne: false
 });
 

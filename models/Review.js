@@ -113,7 +113,7 @@ reviewSchema.virtual('movie', {
 reviewSchema.statics.getAverageRating = async function(movieId) {
   const obj = await this.aggregate([
     {
-      $match: { movieId: mongoose.Types.ObjectId(movieId), status: 'approved' }
+      $match: { movieId: new mongoose.Types.ObjectId(movieId), status: 'approved' }
     },
     {
       $group: {
@@ -234,7 +234,7 @@ reviewSchema.statics.getRatingDistribution = async function(movieId) {
   const result = await this.aggregate([
     {
       $match: { 
-        movieId: mongoose.Types.ObjectId(movieId),
+        movieId: new mongoose.Types.ObjectId(movieId),
         status: 'approved'
       }
     },

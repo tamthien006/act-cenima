@@ -108,6 +108,24 @@ exports.getRevenueStats = async (req, res, next) => {
       ticketCount: item.ticketCount,
       averageTicketValue: item.averageTicketValue
     }));
+    let summary = await Payment.aggregate([
+      { $match: matchStatus },
+      { $addFields: { effectiveDate: { $ifNull: ['$paymentDetails.transactionTime', '$createdAt'] } } },
+      { $match: { effectiveDate: dateRange } },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$amount' },
+          totalTickets: { $sum: 1 },
+          averageOrderValue: { $avg: '$amount' },
+          maxSingleOrder: { $max: '$amount' }
+        }
+      }
+    ]);
+    const revenueByPaymentMethod = await Payment.aggregate([
+      { $match: matchStatus },
+      { $addFields: { effectiveDate: { $ifNull: ['$paymentDetails.transactionTime', '$createdAt'] } } },
+      { $match: { effectiveDate: dateRange } },
 
     const summaryAgg = await Ticket.aggregate([
       { $match: ticketMatch },

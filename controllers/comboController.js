@@ -25,38 +25,46 @@ next(err);
 }
 };
 exports.getAvailableCombos = async (req, res, next) => {
-try {
-const { cinemaId } = req.query;
-const now = new Date();
-const query = {
-isActive: true,
-$or: [
-{ validFrom: { $exists: false } },
-{ validFrom: { $lte: now } }
-],
-$or: [
-{ validTo: { $exists: false } },
-{ validTo: { $gte: now } }
-]
-};
-if (cinemaId) {
-query.$or = [
-{ applicableCinemas: { $exists: false } },
-{ applicableCinemas: { $size: 0 } },
-{ applicableCinemas: cinemaId }
-];
-}
-const combos = await Combo.find(query)
-.select('name description price imageUrl items')
-.sort({ price: 1 });
-res.status(200).json({
-success: true,
-count: combos.length,
-data: combos
-});
-} catch (err) {
-next(err);
-}
+  try {
+    const { cinemaId } = req.query;
+    const now = new Date();
+
+    const andConditions = [
+      { isActive: true },
+      { $or: [
+        { validFrom: { $exists: false } },
+        { validFrom: { $lte: now } }
+      ]},
+      { $or: [
+        { validTo: { $exists: false } },
+        { validTo: { $gte: now } }
+      ]}
+    ];
+
+    if (cinemaId) {
+      andConditions.push({
+        $or: [
+          { availableAt: { $exists: false } },
+          { availableAt: { $size: 0 } },
+          { availableAt: cinemaId }
+        ]
+      });
+    }
+
+    const query = { $and: andConditions };
+
+    const combos = await Combo.find(query)
+      .select('name description price imageUrl items')
+      .sort({ price: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: combos.length,
+      data: combos
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 exports.getComboById = async (req, res, next) => {
 try {
