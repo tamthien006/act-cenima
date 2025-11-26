@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/neutral_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <ImageButton
+            android:id="@+id/btnBackGeneric"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Phương thức thanh toán"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@color/neutral_text"/>
+    </LinearLayout>
+
+    <RadioGroup
+        android:id="@+id/groupMethods"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="16dp">
+        <RadioButton
+            android:id="@+id/rbVietQr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="VietQR"/>
+        <RadioButton
+            android:id="@+id/rbManual"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chuyển khoản thủ công"/>
+        <RadioButton
+            android:id="@+id/rbCash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tiền mặt tại quầy"/>
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/btnSaveMethod"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Lưu"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="@color/nav_active"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tài khoản ngân hàng"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="@color/neutral_text"
+        android:layout_marginTop="24dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="8dp">
+        <Button
+            android:id="@+id/btnAddBank"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Thêm tài khoản"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerBanks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="8dp"/>
+
+    <Button
+        android:id="@+id/btnSaveBanks"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Lưu tài khoản ngân hàng"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="@color/nav_active"
+        android:textColor="@android:color/white"/>
+</LinearLayout>

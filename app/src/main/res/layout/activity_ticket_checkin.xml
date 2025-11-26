@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/neutral_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <ImageButton
+            android:id="@+id/btnBackGeneric"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"/>
+        <TextView
+            android:id="@+id/tvCheckinTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Mã check-in"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@color/neutral_text"/>
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressCheckin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:visibility="gone"/>
+
+    <!-- Success header -->
+    <TextView
+        android:id="@+id/tvSuccess"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Đặt vé thành công!"
+        android:textColor="#0AAD2A"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp"/>
+
+    <!-- QR block -->
+    <ImageView
+        android:id="@+id/imgQrCheckin"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"/>
+
+    <TextView
+        android:id="@+id/tvBarcodeValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/neutral_text"
+        android:layout_marginTop="12dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Vui lòng đưa mã QR/mã vạch tại quầy để nhận vé"
+        android:textColor="@color/neutral_subtext"
+        android:gravity="center"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Ticket info card -->
+    <LinearLayout
+        android:id="@+id/cardTicketInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_movie_card"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_marginTop="16dp">
+
+        <ImageView
+            android:id="@+id/imgPoster"
+            android:layout_width="100dp"
+            android:layout_height="140dp"
+            android:layout_gravity="center_horizontal"
+            android:scaleType="centerCrop"/>
+
+        <TextView
+            android:id="@+id/tvMovieTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@color/neutral_text"
+            android:text="Tên phim"/>
+
+        <TextView
+            android:id="@+id/tvCinemaRoom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rạp • Phòng"
+            android:textColor="@color/neutral_subtext"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tvShowTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ngày • Giờ"
+            android:textColor="@color/neutral_subtext"
+            android:layout_marginTop="2dp"/>
+
+        <TextView
+            android:id="@+id/tvSeats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ghế"
+            android:textColor="@color/neutral_subtext"
+            android:layout_marginTop="2dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#1FFFFFFF"/>
+
+        <TextView
+            android:id="@+id/tvTotal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tổng thanh toán: --đ"
+            android:textStyle="bold"
+            android:textColor="@color/neutral_text"/>
+
+        <TextView
+            android:id="@+id/tvMethodStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Phương thức • Trạng thái"
+            android:textColor="@color/neutral_subtext"
+            android:layout_marginTop="2dp"/>
+
+        <TextView
+            android:id="@+id/tvBookedAt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Thời gian đặt"
+            android:textColor="@color/neutral_subtext"
+            android:layout_marginTop="2dp"/>
+    </LinearLayout>
+
+    <!-- Actions -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/btnDownloadTicket"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Tải vé"
+            android:background="@drawable/bg_outline_button"
+            android:textColor="@color/white"/>
+
+        <Space android:layout_width="12dp" android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/btnShareTicket"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Chia sẻ"
+            android:background="@drawable/bg_outline_button"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnGoHome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Về trang chủ"
+        android:background="@drawable/bg_primary_button"
+        android:textColor="@color/white"/>
+
+    </LinearLayout>
+
+</ScrollView>
