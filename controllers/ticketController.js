@@ -7,6 +7,7 @@ const Room = require('../models/Room');
 const PaymentSettings = require('../models/PaymentSettings');
 const PaymentIntent = require('../models/PaymentIntent');
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 
 const { validationResult } = require('express-validator');
 
@@ -319,59 +320,87 @@ exports.getTickets = async (req, res, next) => {
   }
 };
 
-exports.getUserTickets = async (req, res, next) => {
+// @desc    Lấy vé theo token đăng nhập (không cần userId)
+// @route   GET /api/v1/tickets/me
+// @access  Private
+exports.getMyTickets = async (req, res, next) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
-    const userId = req.params.userId;
-    if (req.user.id !== userId && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Không có quyền xem các vé này'
-      });
-    }
-    const query = { userId };
-    if (status) {
-      query.status = status;
-    }
-    const raw = await Ticket.find(query)
+    const userId = String(req.user.id);
+    const oid = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : null;
+    const query = { $or: [ { user: oid || userId }, { user: userId }, { userId: oid || userId }, { userId: userId } ] };
+    if (status) query.status = status;
+
+    const docs = await Ticket.find(query)
       .setOptions({ strictPopulate: false })
       .populate('movie', 'title posterUrl')
       .populate('theater', 'name')
       .populate('room', 'name')
-      .populate('user', 'name email')
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
       .lean();
 
-    // Attach schedule object like above
-    const schedIds2 = Array.from(new Set(
-      raw
-        .map(it => (it.scheduleId || it.showtime))
-        .filter(Boolean)
-        .map(id => String(id))
-    ));
-    const schedules2 = schedIds2.length
-      ? await Schedule.find({ _id: { $in: schedIds2 } }).select('startTime endTime').lean()
-      : [];
-    const map2 = new Map(schedules2.map(s => [String(s._id), s]));
-    const tickets = raw.map(it => {
-      const sid = String(it.scheduleId || it.showtime || '')
-      const s = sid ? map2.get(sid) : null;
-      return {
-        ...it,
-        scheduleId: s ? { _id: s._id, startTime: s.startTime, endTime: s.endTime } : (it.scheduleId || it.showtime || null)
-      };
-    });
+    const items = docs.map(d => ({
+      ...d,
+      seatNumbers: Array.isArray(d.seats) ? d.seats.map(s => s.code) : d.seatNumbers,
+      totalAmount: d.totalAmount || d.finalPrice || d.totalPrice || d.subtotal || 0,
+    }));
 
     const count = await Ticket.countDocuments(query);
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      count: tickets.length,
+      count: items.length,
       total: count,
       totalPages: Math.ceil(count / limit),
       currentPage: parseInt(page),
-      data: tickets
+      data: items
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Lấy vé của người dùng hiện tại
+// @route   GET /api/v1/tickets/users/:userId/tickets
+// @access  Private (owner/admin)
+exports.getUserTickets = async (req, res, next) => {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+    const userId = req.params.userId;
+    if (String(req.user.id) !== String(userId) && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Not authorized to view these tickets' });
+    }
+    const id = String(userId);
+    const oid = mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null;
+    const query = { $or: [ { user: oid || id }, { user: id }, { userId: oid || id }, { userId: id } ] };
+    if (status) query.status = status;
+
+    const docs = await Ticket.find(query)
+      .setOptions({ strictPopulate: false })
+      .populate('movie', 'title posterUrl')
+      .populate('theater', 'name')
+      .populate('room', 'name')
+      .populate('showtime', 'startTime endTime date time')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .lean();
+
+    const items = docs.map(d => ({
+      ...d,
+      seatNumbers: Array.isArray(d.seats) ? d.seats.map(s => s.code) : d.seatNumbers,
+      totalAmount: d.totalAmount || d.finalPrice || d.totalPrice || d.subtotal || 0,
+    }));
+
+    const count = await Ticket.countDocuments(query);
+    return res.status(200).json({
+      success: true,
+      count: items.length,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+      data: items
     });
   } catch (err) {
     next(err);

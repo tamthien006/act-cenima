@@ -7,6 +7,8 @@ const Membership = require('../models/Membership');
 require('../models/MembershipPointLog');
 let TicketHistory;
 try { TicketHistory = require('../models/TicketHistory'); } catch (_) { /* optional */ }
+let UserVoucher;
+try { UserVoucher = require('../models/UserVoucher'); } catch (_) { /* optional */ }
 
 function base64url(input) {
   return Buffer.from(input).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
@@ -196,6 +198,17 @@ exports.confirmQr = async (req, res, next) => {
     // Tag that this ticket was paid via app
     ticket.payment.channel = ticket.payment.channel || 'app';
     await ticket.save();
+
+    // If ticket applied a voucher, mark user's voucher as used
+    try {
+      if (UserVoucher && ticket.voucher && ticket.voucher.code) {
+        const code = String(ticket.voucher.code || '').toUpperCase();
+        await UserVoucher.updateOne(
+          { userId: ticket.user, voucherCode: code, isUsed: false },
+          { $set: { isUsed: true, usedAt: new Date(), orderId: ticket._id } }
+        );
+      }
+    } catch (e) { console.error('Mark user voucher used failed:', e?.message || e); }
 
     // Update membership after successful payment (use ticket totals)
     let membershipSnapshot = null;

@@ -27,6 +27,13 @@ const voucherSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+  // Points required to redeem this voucher (0 or null means cannot be redeemed by points)
+  pointsCost: {
+    type: Number,
+    default: 0,
+    min: 0,
+    index: true
+  },
   minOrderAmount: {
     type: Number,
     default: 0,

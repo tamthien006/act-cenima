@@ -88,6 +88,9 @@ const updateStatusHandler = async (req, res, next) => {
 
 router.get('/', protect, staff, ticketController.getTickets);
 
+// Lấy vé theo token (không cần userId)
+router.get('/me', protect, ticketController.getMyTickets);
+
 router.post(
   '/book',
   [
